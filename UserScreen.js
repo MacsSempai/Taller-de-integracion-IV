@@ -1,17 +1,49 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { getAuth, signOut } from 'firebase/auth';
+import { getFirestore, doc, getDoc } from 'firebase/firestore'; // Firestore para obtener el rol del usuario
 
 export default function UserScreen({ onLogout }) {
   const [email, setEmail] = useState('');
+  const [role, setRole] = useState(''); // Estado para almacenar el rol del usuario
+  const [permissions, setPermissions] = useState([]); // Estado para almacenar permisos
   const auth = getAuth();
+  const firestore = getFirestore();
+
+  // Función para asignar permisos basados en el rol del usuario
+  const assignPermissions = (userRole) => {
+    switch (userRole) {
+      case 'inspector':
+        return ['ver_inspecciones', 'crear_inspecciones', 'editar_inspecciones', 'aprobar_inspecciones'];
+      case 'liquidador':
+        return ['ver_inspecciones', 'editar_inspecciones', 'liquidar_inspecciones'];
+      case 'administrador':
+        return ['ver_inspecciones', 'crear_inspecciones', 'editar_inspecciones', 'eliminar_inspecciones', 'administrar_usuarios', 'cambiar_precios'];
+      case 'usuario':
+      default:
+        return ['ver_inspecciones'];
+    }
+  };
 
   useEffect(() => {
     const user = auth.currentUser;
     if (user) {
       setEmail(user.email);
+
+      // Obtener el rol del usuario desde Firestore
+      const fetchUserRole = async () => {
+        const userDoc = await getDoc(doc(firestore, 'users', user.uid));
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          const userRole = userData.role || 'usuario'; // Rol por defecto es 'usuario'
+          setRole(userRole);
+          setPermissions(assignPermissions(userRole)); // Asignar permisos según el rol
+        }
+      };
+
+      fetchUserRole();
     }
-  }, []);
+  }, [auth, firestore]);
 
   const handleLogout = () => {
     signOut(auth)
@@ -27,10 +59,19 @@ export default function UserScreen({ onLogout }) {
     <View style={styles.container}>
       <Image
         style={styles.profileImage}
-        source={require('./assets/icon.png')} //icono de usuario
+        source={require('./assets/icon.png')} // icono de usuario
       />
       <Text style={styles.label}>Correo Electrónico</Text>
       <Text style={styles.text}>{email}</Text>
+
+      <Text style={styles.label}>Rol</Text>
+      <Text style={styles.text}>{role}</Text>
+
+      <Text style={styles.label}>Permisos</Text>
+      {permissions.map((permission, index) => (
+        <Text key={index} style={styles.text}>{permission}</Text>
+      ))}
+
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
         <Text style={styles.logoutButtonText}>Cerrar Sesión</Text>
       </TouchableOpacity>
