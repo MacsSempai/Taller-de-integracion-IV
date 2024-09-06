@@ -143,7 +143,7 @@ export default function App() {
         ["PROYECTO", "", "", "", "", "", "", "", "", "", "", "", ""],
         ["REPARACIÓN DAÑOS EN VIVIENDA", "", "", "", "", "", "", "", "", "", "", "", ""],
         ["NOMBRE", formData.nombre, "", "", "", "", "", "", "", "Fecha: ", "", "", ""],
-        ["RUT", formData.rut, "", "", "", "", "", "", "", "Cotización:", "", "", ""],
+        ["RUT", formData.rut, "", "", "", "", "", "", "", "", "Cotización:", "", "", ""],
         ["DIRECCION", formData.direccion, "", "", "", "", "", "", "", "", "", "", ""],
         ["COMUNA", formData.comuna, "", "", "", "", "", "", "", "", "", "", ""],
         ["DETALLE  DE  PARTIDAS   ITEMIZADAS", "", "", "", "", "", "", "", "", "", "DETERMINACIÓN DE VALORES", "", ""],
@@ -158,15 +158,15 @@ export default function App() {
         const rowRef = worksheet.addRow(row);
         if (rowIndex < updatedHeader.length) {
           rowRef.eachCell((cell, colNumber) => {
-            if (rowIndex < 2 || rowIndex === 3 || rowIndex === 4) { // Aplicar estilo especial a las filas 1, 2, 4 y 5
+            if (rowIndex < 2 || rowIndex === 3 || rowIndex === 4) { 
               cell.fill = {
                 type: 'pattern',
                 pattern: 'solid',
-                fgColor: { argb: '002060' }, // Fondo azul
+                fgColor: { argb: '002060' }, 
               };
               cell.font = {
                 bold: true,
-                color: { argb: '00FF00' }, // Texto verde
+                color: { argb: '00FF00' }, 
               };
             } else {
               cell.fill = {
@@ -186,12 +186,12 @@ export default function App() {
               right: { style: 'thin', color: { argb: '000000' } }
             };
           });
-        } else { // Aplicar estilo verde a las filas de datos
+        } else { 
           rowRef.eachCell((cell, colNumber) => {
             cell.fill = {
               type: 'pattern',
               pattern: 'solid',
-              fgColor: { argb: 'E8F3D3' }, // Fondo verde
+              fgColor: { argb: 'E8F3D3' }, 
             };
             cell.font = {
               bold: true,
@@ -207,13 +207,11 @@ export default function App() {
         }
       });
 
-      // Unir celdas de las filas 1, 2, 4 y 5 antes de aplicar estilos
       worksheet.mergeCells('A1:M1');
       worksheet.mergeCells('A2:M2');
       worksheet.mergeCells('A4:M4');
       worksheet.mergeCells('A5:M5');
 
-      // Centrar el texto en las celdas combinadas
       worksheet.getCell('A1').alignment = { vertical: 'middle', horizontal: 'center' };
       worksheet.getCell('A2').alignment = { vertical: 'middle', horizontal: 'center' };
       worksheet.getCell('A4').alignment = { vertical: 'middle', horizontal: 'center' };
@@ -262,14 +260,12 @@ export default function App() {
       }
     });
 
-    // Guardar el archivo en una ubicación temporal
     const buffer = await workbook.xlsx.writeBuffer();
     const uri = FileSystem.cacheDirectory + 'example.xlsx';
     await FileSystem.writeAsStringAsync(uri, buffer.toString('base64'), {
       encoding: FileSystem.EncodingType.Base64,
     });
 
-    // Compartir el archivo usando expo-sharing
     await Sharing.shareAsync(uri);
   };
 
