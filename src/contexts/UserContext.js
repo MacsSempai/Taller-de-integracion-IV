@@ -5,7 +5,7 @@ const UserContext = createContext();
 export const useUser = () => useContext(UserContext);
 
 export const UserProvider = ({ children }) => {
-  const [userRole, setUserRole] = useState('Inspector');
+  const [userRole, setUserRole] = useState('Inspector'); // los roles son 'Admin','Inspector', 'Liquidador', 'Asegurado' y 'Contratista'
 
   return (
     <UserContext.Provider value={{ userRole, setUserRole }}>

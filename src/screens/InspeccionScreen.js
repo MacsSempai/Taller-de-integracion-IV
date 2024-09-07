@@ -1,6 +1,3 @@
-
-
-
 import React, { useState } from 'react';
 import { View, Button, StyleSheet, ScrollView, TextInput, Text } from 'react-native';
 import * as FileSystem from 'expo-file-system';
@@ -8,7 +5,7 @@ import * as Sharing from 'expo-sharing';
 import ExcelJS from 'exceljs';
 import { Picker } from '@react-native-picker/picker'; // Importa Picker desde @react-native-picker/picker
 
-import dataJson from '../components/elementos.json'; // Importa el archivo JSON
+import dataJson from '../elementos.json'; // Importa el archivo JSON
 
 const generateRows = (data, realCounts) => {
   const rows = [];
@@ -375,16 +372,8 @@ const styles = StyleSheet.create({
     height: 40,
     borderColor: 'gray',
     borderWidth: 1,
-    marginBottom: 10,
     paddingHorizontal: 10,
-  },
-  sectorInput: {
-    width: '100%',
-    height: 40,
-    borderColor: 'gray',
-    borderWidth: 1,
     marginBottom: 10,
-    paddingHorizontal: 10,
   },
   picker: {
     height: 50,
@@ -419,12 +408,5 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 14,
     marginRight: 10,
-  },
-  input: {
-    flex: 1,
-    height: 40,
-    borderColor: 'gray',
-    borderWidth: 1,
-    paddingHorizontal: 10,
   },
 });
