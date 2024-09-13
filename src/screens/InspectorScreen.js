@@ -3,7 +3,7 @@ import { View, Text, Button, TouchableOpacity } from 'react-native';
 import { useUser } from '../contexts/UserContext';
 import { globalStyles } from '../styles/globalStyles'; // Importa los estilos globales
 
-export default function HomeScreen({ navigation }) {
+export default function InspectorScreen({ navigation }) {
   const { userRole } = useUser();
 
   return (
@@ -37,10 +37,10 @@ export default function HomeScreen({ navigation }) {
         </TouchableOpacity>
       )}
   
-  {userRole === 'Cliente' && (
+  {userRole === 'Asegurado' && (
         <TouchableOpacity
           style={globalStyles.button}
-          onPress={() => navigation.navigate('Cliente')}
+          onPress={() => navigation.navigate('Asegurado')}
         >
           <Text style={globalStyles.buttonText}>Ir a Pantalla de Asegurado</Text>
         </TouchableOpacity>
