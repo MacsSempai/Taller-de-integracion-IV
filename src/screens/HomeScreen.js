@@ -40,9 +40,9 @@ export default function HomeScreen({ navigation }) {
   {userRole === 'Cliente' && (
         <TouchableOpacity
           style={globalStyles.button}
-          onPress={() => navigation.navigate('Cliente')}
+          onPress={() => navigation.navigate('Detalles')}
         >
-          <Text style={globalStyles.buttonText}>Ir a Pantalla de Asegurado</Text>
+          <Text style={globalStyles.buttonText}>Ir a Pantalla de Detalles</Text>
         </TouchableOpacity>
       )}
   
