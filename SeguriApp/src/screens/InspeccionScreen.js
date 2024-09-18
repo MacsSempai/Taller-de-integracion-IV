@@ -6,8 +6,8 @@ import { useContractors } from '../contexts/UserContext';
 import dataJson from '../elementos.json';
 
 export default function DetailsScreen({ navigation }) {
-  const { client } = useClient();
-  const { contractors } = useContractors(); // Asegúrate de usar el hook correcto
+  const { client } = useClient(); // Asegúrate de que el contexto devuelva los datos correctos
+  const { contractors } = useContractors(); // Verifica que los contratistas sean obtenidos correctamente
 
   const [sections, setSections] = useState([
     { name: '', quantity: '', tempData: {}, totalCosts: {}, confirmationMessage: '', selectedSection: Object.keys(dataJson)[0], selectedContractor: null }
@@ -208,32 +208,29 @@ const styles = StyleSheet.create({
   clientText: {
     fontSize: 16,
     marginBottom: 5,
-    textAlign: 'center',
   },
   scrollView: {
-    width: '100%',
+    marginTop: 20,
   },
   sectionContainer: {
-    marginBottom: 20,
-    padding: 15,
+    marginBottom: 30,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#ced4da',
+    borderRadius: 5,
     backgroundColor: '#fff',
-    borderRadius: 8,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 1 },
-    shadowRadius: 4,
-    elevation: 5,
   },
   input: {
-    height: 40,
-    borderColor: '#ced4da',
     borderWidth: 1,
+    borderColor: '#ced4da',
+    borderRadius: 5,
+    padding: 10,
     marginBottom: 10,
-    paddingHorizontal: 10,
-    borderRadius: 4,
   },
   picker: {
-    height: 50,
+    borderWidth: 1,
+    borderColor: '#ced4da',
+    borderRadius: 5,
     marginBottom: 10,
   },
   quantityContainer: {
@@ -242,23 +239,18 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   inputLabel: {
-    flex: 1,
     fontSize: 16,
-    fontWeight: 'bold',
+    marginRight: 10,
   },
   quantityInput: {
-    flex: 2,
-    height: 40,
-    borderColor: '#ced4da',
+    flex: 1,
     borderWidth: 1,
-    paddingHorizontal: 10,
-    borderRadius: 4,
+    borderColor: '#ced4da',
+    borderRadius: 5,
+    padding: 10,
   },
   itemContainer: {
     marginBottom: 10,
-    padding: 10,
-    backgroundColor: '#f1f3f5',
-    borderRadius: 4,
   },
   itemHeader: {
     fontSize: 16,
@@ -266,16 +258,20 @@ const styles = StyleSheet.create({
   },
   confirmationMessage: {
     marginTop: 10,
+    fontSize: 16,
+    fontWeight: 'bold',
     color: '#28a745',
   },
   generatedDataContainer: {
     marginTop: 20,
-    padding: 15,
-    backgroundColor: '#e9ecef',
-    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ced4da',
+    borderRadius: 5,
+    padding: 20,
+    backgroundColor: '#fff',
   },
   generatedDataText: {
     fontSize: 16,
-    color: '#495057',
+    whiteSpace: 'pre-wrap',
   },
 });
