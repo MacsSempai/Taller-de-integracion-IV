@@ -1,15 +1,27 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext } from 'react';
 
 // Crear el contexto del usuario
 const UserContext = createContext();
 const ClientContext = createContext();
 const ContractorContext = createContext();
 
+const defaultClient = {
+  nombre: 'Juan Pérez',
+  rut: '23.423.492-7',
+  direccion: 'Calle Falsa 123',
+  comuna: 'Temuco'
+};
+
+const defaultContractors = [
+  { id: '1', name: 'Contratista A', percentage: 10, transportationCost: 10, areas: ['Fisuras', 'Area2'] },
+  { id: '2', name: 'Contratista B', percentage: 15, transportationCost: 15, areas: ['Fisuras', 'Area3'] }
+];
+
 // Proveer el contexto del usuario
 export const useUser = () => useContext(UserContext);
 
 export const UserProvider = ({ children }) => {
-  const [userRole, setUserRole] = useState('Inspector'); // los roles son 'Admin', 'Inspector', 'Cliente', 'Liquidador', 'Contratista'
+  const [userRole, setUserRole] = useState('Inspector'); // los roles son 'Admin','Inspector', 'Cliente', 'Liquidador' y 'Contratista'
 
   return (
     <UserContext.Provider value={{ userRole, setUserRole }}>
@@ -22,22 +34,7 @@ export const UserProvider = ({ children }) => {
 export const useClient = () => useContext(ClientContext);
 
 export const ClientProvider = ({ children }) => {
-  const [client, setClient] = useState(null); // Estado inicial vacío
-
-  useEffect(() => {
-    // Obtener datos del cliente desde la API
-    const fetchClientData = async () => {
-      try {
-        const response = await fetch('/api/client'); // Ajusta la ruta según tu API
-        const data = await response.json();
-        setClient(data); // Asignar los datos del cliente desde la API
-      } catch (error) {
-        console.error('Error fetching client data:', error);
-      }
-    };
-
-    fetchClientData();
-  }, []); // Se ejecuta solo una vez al montar el componente
+  const [client, setClient] = useState(defaultClient);
 
   return (
     <ClientContext.Provider value={{ client, setClient }}>
@@ -50,22 +47,7 @@ export const ClientProvider = ({ children }) => {
 export const useContractors = () => useContext(ContractorContext);
 
 export const ContractorProvider = ({ children }) => {
-  const [contractors, setContractors] = useState([]); // Estado inicial vacío
-
-  useEffect(() => {
-    // Obtener datos de los contratistas desde la API
-    const fetchContractorsData = async () => {
-      try {
-        const response = await fetch('/api/contractors'); // Ajusta la ruta según tu API
-        const data = await response.json();
-        setContractors(data); // Asignar los datos de los contratistas desde la API
-      } catch (error) {
-        console.error('Error fetching contractors data:', error);
-      }
-    };
-
-    fetchContractorsData();
-  }, []); // Se ejecuta solo una vez al montar el componente
+  const [contractors, setContractors] = useState(defaultContractors);
 
   return (
     <ContractorContext.Provider value={{ contractors, setContractors }}>
