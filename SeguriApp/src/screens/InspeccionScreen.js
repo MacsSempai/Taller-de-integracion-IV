@@ -1,19 +1,45 @@
-import React, { useState } from 'react';
-import { View, Button, StyleSheet, ScrollView, TextInput, Text } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Button, StyleSheet, ScrollView, TextInput, Text, ActivityIndicator } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import { useClient } from '../contexts/UserContext'; 
-import { useContractors } from '../contexts/UserContext'; 
+import axios from 'axios';
 import dataJson from '../elementos.json';
+import { CommonActions } from '@react-navigation/native';
 
-export default function DetailsScreen({ navigation }) {
-  const { client } = useClient(); // Asegúrate de que el contexto devuelva los datos correctos
-  const { contractors } = useContractors(); // Verifica que los contratistas sean obtenidos correctamente
-
-  const [sections, setSections] = useState([
-    { name: '', quantity: '', tempData: {}, totalCosts: {}, confirmationMessage: '', selectedSection: Object.keys(dataJson)[0], selectedContractor: null }
-  ]);
-
+export default function DetailsScreen({ navigation, route }) {
+  const { casoId, clienteId } = route.params; // Asumiendo que el casoId se pasa como parámetro
+  const [client, setClient] = useState([]); 
+  const [contractors, setContractors] = useState([]);
+  const [sections, setSections] = useState([{
+    name: '',
+    quantity: '',
+    tempData: {},
+    totalCosts: {},
+    confirmationMessage: '',
+    selectedSection: Object.keys(dataJson)[0], // Valor predeterminado
+    selectedContractor: null 
+  }]);
   const [generatedData, setGeneratedData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchClientAndContractors = async () => {
+      try {
+        const clientResponse = await axios.get(`http://192.168.50.101:3000/cliente/${clienteId}`);
+        setClient(clientResponse.data);
+  
+        const contractorsResponse = await axios.get(`http://192.168.50.101:3000/contratistas`);
+        setContractors(contractorsResponse.data);
+      } catch (err) {
+        console.error('Error al cargar datos', err);
+        setError('Hubo un problema al cargar los datos. Por favor, intenta nuevamente.');
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    fetchClientAndContractors();
+  }, [clienteId]);
 
   const handleQuantityChange = (value, sectionIndex) => {
     const quantity = parseFloat(value) || 0;
@@ -35,6 +61,7 @@ export default function DetailsScreen({ navigation }) {
   const resetInputs = (sectionIndex) => {
     const newSections = [...sections];
     newSections[sectionIndex].quantity = '';
+    newSections[sectionIndex].totalCosts = {}; // Limpiar los costos
     setSections(newSections);
   };
 
@@ -61,7 +88,15 @@ export default function DetailsScreen({ navigation }) {
   };
 
   const addSection = () => {
-    setSections([...sections, { name: '', quantity: '', tempData: {}, totalCosts: {}, confirmationMessage: '', selectedSection: Object.keys(dataJson)[0], selectedContractor: null }]);
+    setSections([...sections, { 
+      name: '', 
+      quantity: '', 
+      tempData: {}, 
+      totalCosts: {}, 
+      confirmationMessage: '', 
+      selectedSection: Object.keys(dataJson)[0], // Valor predeterminado
+      selectedContractor: null 
+    }]);
   };
 
   const generateData = () => {
@@ -105,15 +140,46 @@ export default function DetailsScreen({ navigation }) {
     setGeneratedData(dataString);
   };
 
+  if (loading) {
+    return (
+      <View style={styles.errorContainer}>
+        <ActivityIndicator size="large" color="#007BFF" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>{error}</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      <View style={styles.headerContainer}>
-        <Text style={styles.headerText}>Detalles del Cliente</Text>
-        <Text style={styles.clientText}>{`Nombre: ${client.nombre}`}</Text>
-        <Text style={styles.clientText}>{`RUT: ${client.rut}`}</Text>
-        <Text style={styles.clientText}>{`Dirección: ${client.direccion}`}</Text>
-        <Text style={styles.clientText}>{`Comuna: ${client.comuna}`}</Text>
-      </View>
+    <View style={styles.headerContainer}>
+      <Text style={styles.headerText}>Detalles del Cliente</Text>
+      
+      {loading ? (
+        // Mostrar un indicador de carga mientras los datos se obtienen
+        <ActivityIndicator size="large" color="#0000ff" />
+      ) : error ? (
+        // Mostrar un mensaje de error si la carga falla
+        <Text style={styles.errorText}>{error}</Text>
+      ) : client ? (
+        // Solo renderizar los datos del cliente si se han cargado correctamente
+        <>
+          <Text style={styles.clientText}>Nombre: {client.nombre}</Text>
+          <Text style={styles.clientText}>RUT: {client.rut}</Text>
+          <Text style={styles.clientText}>Dirección: {client.direccion}</Text>
+          <Text style={styles.clientText}>Comuna: {client.comuna}</Text>
+        </>
+      ) : (
+        // Mostrar un mensaje temporal mientras se espera la carga
+        <Text>No hay datos disponibles del cliente</Text>
+      )}
+    </View>
 
       <Button title="Agregar Sección" onPress={addSection} color="#007BFF" />
       
@@ -151,39 +217,33 @@ export default function DetailsScreen({ navigation }) {
               />
             </View>
 
-            {Object.keys(dataJson[section.selectedSection]).map((item, subIndex) => (
-              <View key={subIndex} style={styles.itemContainer}>
-                <Text style={styles.itemHeader}>{item}</Text>
-                <Text>{`Costo: ${section.totalCosts[item] || 0}`}</Text>
-              </View>
-            ))}
-
             <Picker
               selectedValue={section.selectedContractor}
               style={styles.picker}
               onValueChange={(itemValue) => handleContractorChange(itemValue, sectionIndex)}
             >
               <Picker.Item label="Seleccionar Contratista" value={null} />
-              {contractors.filter(c => c.areas.includes(section.selectedSection)).map((contractor) => (
+              {contractors.map((contractor) => (
                 <Picker.Item key={contractor.id} label={contractor.name} value={contractor.id} />
               ))}
             </Picker>
 
-            <Button title="Enviar Datos" onPress={() => sendSectionData(sectionIndex)} color="#28a745" />
-            {section.confirmationMessage ? (
-              <Text style={styles.confirmationMessage}>{section.confirmationMessage}</Text>
-            ) : null}
+            <Button
+              title="Enviar Sección"
+              onPress={() => sendSectionData(sectionIndex)}
+              color="#007BFF"
+            />
+            
+            <Text>{section.confirmationMessage}</Text>
           </View>
         ))}
       </ScrollView>
 
-      <Button title="Generar Datos" onPress={generateData} color="#FFC107" />
-
+      <Button title="Generar Excel" onPress={generateData} color="#007BFF" />
+      
       {generatedData && (
         <View style={styles.generatedDataContainer}>
-          <ScrollView>
-            <Text style={styles.generatedDataText}>{generatedData}</Text>
-          </ScrollView>
+          <Text>{generatedData}</Text>
         </View>
       )}
     </View>
@@ -191,87 +251,18 @@ export default function DetailsScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    backgroundColor: '#f8f9fa',
-  },
-  headerContainer: {
-    marginBottom: 20,
-  },
-  headerText: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  clientText: {
-    fontSize: 16,
-    marginBottom: 5,
-  },
-  scrollView: {
-    marginTop: 20,
-  },
-  sectionContainer: {
-    marginBottom: 30,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: '#ced4da',
-    borderRadius: 5,
-    backgroundColor: '#fff',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ced4da',
-    borderRadius: 5,
-    padding: 10,
-    marginBottom: 10,
-  },
-  picker: {
-    borderWidth: 1,
-    borderColor: '#ced4da',
-    borderRadius: 5,
-    marginBottom: 10,
-  },
-  quantityContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  inputLabel: {
-    fontSize: 16,
-    marginRight: 10,
-  },
-  quantityInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: '#ced4da',
-    borderRadius: 5,
-    padding: 10,
-  },
-  itemContainer: {
-    marginBottom: 10,
-  },
-  itemHeader: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  confirmationMessage: {
-    marginTop: 10,
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#28a745',
-  },
-  generatedDataContainer: {
-    marginTop: 20,
-    borderWidth: 1,
-    borderColor: '#ced4da',
-    borderRadius: 5,
-    padding: 20,
-    backgroundColor: '#fff',
-  },
-  generatedDataText: {
-    fontSize: 16,
-    whiteSpace: 'pre-wrap',
-  },
+  container: { flex: 1, padding: 20 },
+  headerContainer: { marginBottom: 20 },
+  headerText: { fontSize: 24, fontWeight: 'bold' },
+  clientText: { fontSize: 18, marginVertical: 2 },
+  input: { height: 40, borderColor: 'gray', borderWidth: 1, marginBottom: 10, paddingHorizontal: 10 },
+  picker: { height: 50, width: '100%' },
+  sectionContainer: { marginBottom: 20 },
+  scrollView: { marginTop: 20 },
+  quantityContainer: { flexDirection: 'row', alignItems: 'center' },
+  inputLabel: { marginRight: 10 },
+  quantityInput: { height: 40, borderColor: 'gray', borderWidth: 1, flex: 1, paddingHorizontal: 10 },
+  generatedDataContainer: { marginTop: 20, padding: 10, backgroundColor: '#f0f0f0', borderRadius: 5 },
+  errorContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  errorText: { color: 'red', fontSize: 18 },
 });
