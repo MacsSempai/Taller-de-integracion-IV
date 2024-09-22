@@ -59,7 +59,7 @@ app.get('/roles/:rolId', (req, res) => {
 app.get('/casos/:usuarioId', (req, res) => {
     const { usuarioId } = req.params;
 
-    db.query('SELECT * FROM casos WHERE inspector_id = ? OR cliente_id = ?', [usuarioId, usuarioId], (err, rows) => {
+    db.query('SELECT * FROM casos WHERE inspector_id = ? OR cliente_id = ? OR liquidador_id = ?', [usuarioId, usuarioId, usuarioId], (err, rows) => {
         if (err) {
             console.error('Error al obtener los casos:', err);
             return res.status(500).json({ message: 'Error al obtener los casos' });
@@ -141,6 +141,20 @@ app.get('/inspectores/:id', (req, res) => {
             return res.status(500).json({ message: 'Error al obtener los datos del inspector' });
         }
         res.json(rows);
+    });
+});
+
+// Endpoint para actualizar el estado de un caso
+app.put('/casos/:casoId', (req, res) => {
+    const { casoId } = req.params;
+    const { estado } = req.body;
+
+    db.query('UPDATE casos SET estado = ? WHERE id = ?', [estado, casoId], (err, result) => {
+        if (err) {
+            console.error('Error al actualizar el estado del caso:', err);
+            return res.status(500).json({ message: 'Error al actualizar el estado del caso' });
+        }
+        res.json({ message: 'Estado actualizado' });
     });
 });
 

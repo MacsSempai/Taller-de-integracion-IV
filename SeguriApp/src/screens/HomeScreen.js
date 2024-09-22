@@ -94,13 +94,10 @@ export default function HomeScreen({ navigation }) {
         data={casos}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => {
-          const isClickable = item.estado === 'abierto'; // Verifica si el caso está abierto
-
           return (
             <TouchableOpacity
-              style={[styles.caseButton, !isClickable && styles.disabledButton]} // Aplica el estilo de deshabilitado si no es clickeable
-              onPress={() => isClickable && handleNavigation(item)} // Navega basado en el rol
-              disabled={!isClickable} // Deshabilita la interacción si no está abierto
+              style={[styles.caseButton]} 
+              onPress={() => handleNavigation(item)} 
             >
               <View style={styles.caseContent}>
                 <Text style={styles.caseDescription}>{item.descripcion}</Text>
