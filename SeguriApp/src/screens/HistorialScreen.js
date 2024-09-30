@@ -4,7 +4,7 @@ import { useUser } from '../contexts/UserContext'; // Importa el contexto
 import axios from 'axios';
 import useFetchUserRole from '../hooks/useFetchUserRole'; // Importa el hook personalizado
 
-export default function HomeScreen({ navigation }) {
+export default function HistorialScreen({ navigation }) {
   const { usuarioId } = useUser(); // Accede al usuarioId desde el contexto
   const { userRole, loading: roleLoading, error: roleError } = useFetchUserRole(usuarioId); // Usa el hook personalizado
   const [casos, setCasos] = useState([]);
@@ -14,7 +14,11 @@ export default function HomeScreen({ navigation }) {
     const fetchCasos = async () => {
       try {
         const response = await axios.get(`http://192.168.50.101:3000/casos/${usuarioId}`);
-        setCasos(response.data);
+        // Filtra los casos que no están en estado "abierto" o "aceptado"
+        const casosFiltrados = response.data.filter(
+          (caso) => caso.estado !== 'abierto' && caso.estado !== 'aceptado'
+        );
+        setCasos(casosFiltrados);
         setError(null);
       } catch (error) {
         console.error('Error al obtener los casos', error);
@@ -23,7 +27,7 @@ export default function HomeScreen({ navigation }) {
     };
 
     if (usuarioId) {
-      fetchCasos(); // Llama a la función para obtener los casos
+      fetchCasos(); // Llama a la función para obtener los casos filtrados
     }
   }, [usuarioId]);
 
@@ -56,19 +60,15 @@ export default function HomeScreen({ navigation }) {
   if (casos.length === 0) {
     return (
       <View style={styles.errorContainer}>
-        <Text style={styles.infoText}>No se encontraron casos para mostrar.</Text>
+        <Text style={styles.infoText}>No se encontraron casos en el historial.</Text>
       </View>
     );
   }
 
   const getEstadoColor = (estado) => {
     switch (estado) {
-      case 'abierto':
-        return '#3498db'; // Azul
       case 'cerrado':
         return '#95a5a6'; // Gris
-      case 'aceptado':
-        return '#2ecc71'; // Verde
       case 'rechazado':
         return '#e74c3c'; // Rojo
       default:
@@ -81,48 +81,32 @@ export default function HomeScreen({ navigation }) {
       case 'cliente':
         navigation.navigate('Detalles', { casoId: item.id, clienteId: item.cliente_id });
         break;
-      case 'inspector':
-        navigation.navigate('Inspeccion', { casoId: item.id });
-        break;
-      case 'liquidador':
-        navigation.navigate('Liquidacion', { casoId: item.id });
-        break;
       default:
-        console.error('Rol no válido:', userRole);
+        console.error('Rol no válido para el historial:', userRole);
     }
   };
 
   return (
     <View style={styles.container}>
-      {/* Si el rol es cliente, mostramos el botón para ver el historial */}
-      {userRole === 'cliente' && (
-        <TouchableOpacity
-          style={styles.historialButton}
-          onPress={() => navigation.navigate('Historial')} // Navega a la pantalla del historial
-        >
-          <Text style={styles.historialButtonText}>Ver Historial</Text>
-        </TouchableOpacity>
-      )}
-
-      <FlatList
-        data={casos}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => {
-          return (
+      {/* Si el caso tiene de estado abierto o aceptado no se muestra */}
+        <FlatList
+            data={casos}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item }) => (
             <TouchableOpacity
-              style={[styles.caseButton]} 
-              onPress={() => handleNavigation(item)} 
+                style={[styles.caseButton, item.estado === 'cerrado' ? styles.disabledButton : null]}
+                onPress={() => handleNavigation(item)}
+                disabled={item.estado === 'cerrado'}
             >
-              <View style={styles.caseContent}>
+                <View style={styles.caseContent}>
                 <Text style={styles.caseDescription}>{item.descripcion}</Text>
                 <View style={[styles.statusBox, { backgroundColor: getEstadoColor(item.estado) }]}>
-                  <Text style={styles.statusText}>{item.estado}</Text>
+                    <Text style={styles.statusText}>{item.estado}</Text>
                 </View>
-              </View>
+                </View>
             </TouchableOpacity>
-          );
-        }}
-      />
+            )}
+        />
     </View>
   );
 }
@@ -193,17 +177,5 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: '#e74c3c',
     textAlign: 'center',
-  },
-  historialButton: {
-    backgroundColor: '#3498db',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 15,
-    alignItems: 'center',
-  },
-  historialButtonText: {
-    color: '#fff',
-    fontWeight: '600',
-    fontSize: 16,
   },
 });

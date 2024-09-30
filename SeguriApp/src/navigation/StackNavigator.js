@@ -6,6 +6,7 @@ import HomeScreen from '../screens/HomeScreen';
 import CaseDetailScreen from '../screens/CaseDetailScreen';
 import LiquidatorCaseScreen from '../screens/LiquidadorScreen';
 import InspeccionScreen from '../screens/InspeccionScreen';
+import HistorialScreen from '../screens/HistorialScreen';
 
 const Stack = createStackNavigator();
 
@@ -18,6 +19,7 @@ export default function StackNavigator() {
       <Stack.Screen name="Detalles" component={CaseDetailScreen} />
       <Stack.Screen name="Liquidacion" component={LiquidatorCaseScreen} />
       <Stack.Screen name="Inspeccion" component={InspeccionScreen} />
+      <Stack.Screen name="Historial" component={HistorialScreen} />
     </Stack.Navigator>
   );
 }
