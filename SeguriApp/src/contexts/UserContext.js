@@ -21,10 +21,16 @@ const defaultContractors = [
 export const useUser = () => useContext(UserContext);
 
 export const UserProvider = ({ children }) => {
+<<<<<<< HEAD
   const [userRole, setUserRole] = useState('Inspector'); // los roles son 'Admin','Inspector', 'Cliente', 'Liquidador' y 'Contratista'
+=======
+  // Agregamos el usuarioId además del rol
+  const [userRole, setUserRole] = useState(''); // Roles: 'Admin', 'Inspector', 'Cliente', 'Liquidador', 'Contratista'
+  const [usuarioId, setUsuarioId] = useState(''); // ID del usuario
+>>>>>>> origin/MSierra
 
   return (
-    <UserContext.Provider value={{ userRole, setUserRole }}>
+    <UserContext.Provider value={{ userRole, setUserRole, usuarioId, setUsuarioId }}>
       {children}
     </UserContext.Provider>
   );
