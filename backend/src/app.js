@@ -8,6 +8,8 @@ import materialRoutes from './routes/material.routes.js';
 import estadoRoutes from './routes/estado.routes.js';
 import sectorRoutes from './routes/sector.routes.js';  // Nueva ruta para sectores
 import subsectorRoutes from './routes/subsector.routes.js';  // Nueva ruta para subsectores
+import userRoutes from './routes/userRoutes.js';
+import rolRoutes from './routes/rolRoutes.js';
 
 dotenv.config();
 
@@ -23,10 +25,24 @@ app.use('/api/materiales', materialRoutes);
 app.use('/api/estados-caso', estadoRoutes);
 app.use('/api/sectores', sectorRoutes); // Nueva ruta de sectores
 app.use('/api/subsectores', subsectorRoutes); // Nueva ruta de subsectores
+app.use('/api/users', userRoutes);
+app.use('/api/rol', rolRoutes);
 
 // Ruta de prueba
 app.get('/prueba', (req, res) => {
   res.send('Ruta de prueba funcionando');
 });
+
+//Prueba de conexión a la base de datos
+pool
+  .getConnection()
+  .then((connection) => {
+    console.log('Conexión a la base de datos exitosa');
+    connection.release(); // Liberar la conexión
+  })
+  .catch((err) => {
+    console.error('Error al conectar a la base de datos:', err.message);
+  });
+
 
 export default app;

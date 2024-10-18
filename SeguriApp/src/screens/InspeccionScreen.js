@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Animat
 import { Picker } from '@react-native-picker/picker';
 import { useUser } from '../contexts/UserContext';
 import dataJson from '../elementos.json';
+import * as ImagePicker from 'expo-image-picker'; // Asegúrate de instalar este paquete
 
 export default function InspeccionScreen() {
   const { user } = useUser();
@@ -20,6 +21,7 @@ export default function InspeccionScreen() {
   const [fadeAnim] = useState(new Animated.Value(0));
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [totalCost, setTotalCost] = useState(0);
+  const [selectedImages, setSelectedImages] = useState([]);
 
   const handleFormChange = (key, value) => {
     setFormData({ ...formData, [key]: value });
@@ -37,7 +39,7 @@ export default function InspeccionScreen() {
     newSections[sectionIndex].selectedCategories[subcategoryIndex] = {
       category: value,
       subcategory: 'Seleccione subcategoría',
-      unitCost: datajson[value]?.unitCost || 0, // Asumimos que unitCost está en elementos.json
+      unitCost: dataJson[value]?.unitCost || 0, // Asumimos que unitCost está en elementos.json
     };
     newSections[sectionIndex].realCounts = {};
     setSections(newSections);
@@ -107,11 +109,32 @@ export default function InspeccionScreen() {
   };
 
   const handleSubcategoryChange = () => {
-
+    // Lógica para manejar el cambio de subcategoría
   };
 
-  const handleConfirm = () => {
-    // Lógica para generar el Excel
+  const handleConfirm = async () => {
+    try {
+      const response = await fetch('YOUR_BACKEND_API_URL/generate-excel', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          formData,
+          sections,
+          images: selectedImages,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al generar el Excel');
+      }
+
+      const result = await response.json();
+      Alert.alert('Éxito', 'Excel generado y guardado en la base de datos', [{ text: 'OK' }]);
+    } catch (error) {
+      Alert.alert('Error', error.message);
+    }
     setShowConfirmation(false);
   };
 
@@ -132,7 +155,20 @@ export default function InspeccionScreen() {
     setSections(newSections);
     calculateTotalCost(newSections); // Recalcular total al eliminar sección
   };
-  
+
+  const pickImages = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsMultipleSelection: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      const images = result.assets.map(asset => asset.uri);
+      setSelectedImages(images);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -208,172 +244,78 @@ export default function InspeccionScreen() {
                 style={styles.measurementInput}
                 placeholder="Largo"
                 value={section.measurements.length}
-                onChangeText={(text) => handleMeasurementChange('length', text, sectionIndex)}
+                onChangeText={(text) => handleMeasurementChange('largo', Math.min(parseFloat(text.replace(/[^0-9.]/g, '')), 9999).toString(), sectionIndex)}
                 keyboardType="numeric"
               />
               <TextInput
                 style={styles.measurementInput}
                 placeholder="Ancho"
-                value={section.measurements.width}
-                onChangeText={(text) => handleMeasurementChange('width', text, sectionIndex)}
+                value={section.measurements.ancho}
+                onChangeText={(text) => handleMeasurementChange('ancho', Math.min(parseFloat(text.replace(/[^0-9.]/g, '')), 9999).toString(), sectionIndex)}
                 keyboardType="numeric"
               />
               <TextInput
                 style={styles.measurementInput}
                 placeholder="Alto"
-                value={section.measurements.height}
-                onChangeText={(text) => handleMeasurementChange('height', text, sectionIndex)}
+                value={section.measurements.alto}
+                onChangeText={(text) => handleMeasurementChange('alto', Math.min(parseFloat(text.replace(/[^0-9.]/g, '')), 9999).toString(), sectionIndex)}
                 keyboardType="numeric"
               />
             </View>
             {section.selectedCategories.map((selectedCategory, subcategoryIndex) => (
-              <View key={subcategoryIndex}>
+              <View key={subcategoryIndex} style={styles.categoryContainer}>
                 <Picker
                   selectedValue={selectedCategory.category}
-                  style={styles.picker}
-                  onValueChange={(itemValue) => handleCategoryChange(itemValue, subcategoryIndex, sectionIndex)}
+                  onValueChange={(value) => handleCategoryChange(value, subcategoryIndex, sectionIndex)}
                 >
-                  <Picker.Item label="Cielo" value="Cielo" />
-                  <Picker.Item label="Muro" value="Muro" />
-                  <Picker.Item label="Piso" value="Piso" />
-                  <Picker.Item label="Otros" value="Otros" />
-                </Picker>
-                <Picker
-                  selectedValue={selectedCategory.subcategory}
-                  style={styles.picker}
-                  onValueChange={(itemValue) => handleSubcategoryChange(itemValue, subcategoryIndex, sectionIndex)}
-                >
-                  <Picker.Item label="Seleccione subcategoría" value="Seleccione subcategoría" />
-                  {selectedCategory.category !== 'Seleccione categoría' && dataJson[selectedCategory.category] && Object.keys(dataJson[selectedCategory.category]).map((subcategoryKey) => (
-                    <Picker.Item key={subcategoryKey} label={subcategoryKey.toUpperCase()} value={subcategoryKey} />
+                  <Picker.Item label="Seleccione categoría" value="" />
+                  {Object.keys(dataJson).map((category) => (
+                    <Picker.Item key={category} label={category} value={category} />
                   ))}
                 </Picker>
-                <ScrollView style={styles.itemScrollView}>
-                  <View>
-                    <Text style={styles.subcategoryHeader}>{selectedCategory.subcategory.toUpperCase()}</Text>
-                    {selectedCategory.category !== 'Seleccione categoría' && selectedCategory.subcategory !== 'Seleccione subcategoría' && dataJson[selectedCategory.category] && dataJson[selectedCategory.category][selectedCategory.subcategory] && Object.keys(dataJson[selectedCategory.category][selectedCategory.subcategory]).map((item, subIndex) => (
-                      <View key={subIndex} style={styles.itemContainer}>
-                        <Text style={styles.itemHeader}>  {item.toUpperCase()}</Text>
-                        <View style={styles.inputContainer}>
-                          <Text style={styles.inputLabel}></Text>
-                          <Switch
-                            value={section.realCounts[`${selectedCategory.category}.${selectedCategory.subcategory}.${item}.unidad`] === "1"}
-                            onValueChange={(value) => handleInputChange(`${selectedCategory.category}.${selectedCategory.subcategory}.${item}.unidad`, value ? "1" : "0", sectionIndex)}
-                          />
-                          {item === "deteccion de fuga de agua" || item === "Análisis Y Diagnóstico Circuito Eléctrico" ? (
-                            <View>
-                              <Text> {dataJson[selectedCategory.category][selectedCategory.subcategory][item]?.medida || ''}</Text>
-
-                              {item === "deteccion de fuga de agua" ? (
-                                <TextInput
-                                  style={styles.input}
-                                  placeholder="Ingrese precio"
-                                  keyboardType="numeric"
-                                  value={section.realCounts[`${selectedCategory.category}.${selectedCategory.subcategory}.${item}.precioManual`] || ''}
-                                  onChangeText={(text) => handleInputChange(`${selectedCategory.category}.${selectedCategory.subcategory}.${item}.precioManual`, text, sectionIndex)}
-                                />
-                              ) : (
-                                <TextInput
-                                  style={styles.input}
-                                  placeholder="Ingrese cantidad de puntos eléctricos"
-                                  keyboardType="numeric"
-                                  value={section.realCounts[`${selectedCategory.category}.${selectedCategory.subcategory}.${item}.cantidadPuntos`] || ''}
-                                  onChangeText={(text) => handleInputChange(`${selectedCategory.category}.${selectedCategory.subcategory}.${item}.cantidadPuntos`, text, sectionIndex)}
-                                />
-                              )}
-                            </View>
-                          ) : (
-                            <Picker
-                              selectedValue={section.realCounts[`${selectedCategory.category}.${selectedCategory.subcategory}.${item}.percentage`] || "100"}
-                              style={styles.picker}
-                              onValueChange={(itemValue) => handlePercentageChange(`${selectedCategory.category}.${selectedCategory.subcategory}.${item}`, itemValue, sectionIndex)}
-                            >
-                              <Picker.Item label="100%" value="100" />
-                              <Picker.Item label="90%" value="90" />
-                              <Picker.Item label="80%" value="80" />
-                              <Picker.Item label="70%" value="70" />
-                              <Picker.Item label="60%" value="60" />
-                              <Picker.Item label="50%" value="50" />
-                              <Picker.Item label="40%" value="40" />
-                              <Picker.Item label="30%" value="30" />
-                              <Picker.Item label="20%" value="20" />
-                              <Picker.Item label="10%" value="10" />
-                            </Picker>
-                          )}
-                        </View>
-                      </View>
-                    ))}
-                  </View>
-                </ScrollView>
-                {subcategoryIndex > 0 && (
-                  <TouchableOpacity style={styles.deleteButton} onPress={() => confirmDeleteSubcategory(sectionIndex, subcategoryIndex)}>
-                    <Text style={styles.deleteButtonText}>Eliminar Subcategoría</Text>
-                  </TouchableOpacity>
-                )}
+                <TouchableOpacity onPress={() => addSubcategory(sectionIndex)} style={styles.addButton}>
+                  <Text style={styles.addButtonText}>Agregar Subcategoría</Text>
+                </TouchableOpacity>
               </View>
             ))}
-            <TouchableOpacity style={styles.addSubcategoryButton} onPress={() => addSubcategory(sectionIndex)}>
-              <Text style={styles.addSubcategoryButtonText}>Añadir Subcategoría</Text>
-            </TouchableOpacity>
-            {section.confirmationMessage ? (
-              <Text style={styles.confirmationMessage}>{section.confirmationMessage}</Text>
-            ) : null}
           </View>
         ))}
-        <TouchableOpacity style={styles.addButton} onPress={addSection}>
-          <Text style={styles.addButtonText}>Agregar Sección</Text>
+        <TouchableOpacity style={styles.addSectionButton} onPress={addSection}>
+          <Text style={styles.addSectionButtonText}>Agregar Sección</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.generateButton} onPress={() => setShowConfirmation(true)}>
-          <Text style={styles.generateButtonText}>Generar Excel</Text>
-        </TouchableOpacity>
-      </ScrollView>
-      {showMessage && (
-        <Animated.View style={[styles.messageContainer, { opacity: fadeAnim }]}>
-          <Text style={styles.messageText}>Sección agregada</Text>
-        </Animated.View>
-      )}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={showConfirmation}
-        onRequestClose={() => setShowConfirmation(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Confirmación</Text>
-            <Text style={styles.modalText}>Resumen de Sectores y Subsectores:</Text>
-            <ScrollView style={styles.scrollViewSummary}>
-              {sections.map((section, sectionIndex) => (
-                <View key={sectionIndex} style={styles.modalSection}>
-                  <Text style={styles.modalSectionTitle}>{`Sector ${sectionIndex + 1}: ${section.name}`}</Text>
-                  {section.selectedCategories.map((selectedCategory, subcategoryIndex) => (
-                    <Text key={subcategoryIndex} style={styles.modalSubcategoryText}>
-                      {`- ${selectedCategory.category}: ${selectedCategory.subcategory}`}
-                    </Text>
-                  ))}
-                </View>
+        <View style={styles.imagesContainer}>
+          <TouchableOpacity style={styles.imagePickerButton} onPress={pickImages}>
+            <Text style={styles.imagePickerButtonText}>Seleccionar Imágenes</Text>
+          </TouchableOpacity>
+          {selectedImages.length > 0 && (
+            <ScrollView horizontal>
+              {selectedImages.map((image, index) => (
+                <Image key={index} source={{ uri: image }} style={styles.selectedImage} />
               ))}
             </ScrollView>
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={styles.modalButtonCancel}
-                onPress={() => setShowConfirmation(false)}
-              >
-                <Text style={styles.modalButtonText}>Cancelar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.modalButtonConfirm}
-                onPress={handleConfirm}
-              >
-                <Text style={styles.modalButtonText}>Confirmar y Generar</Text>
-              </TouchableOpacity>
-            </View>
+          )}
+        </View>
+        <Text style={styles.totalCostText}>Costo Total: ${totalCost}</Text>
+        <TouchableOpacity style={styles.confirmButton} onPress={() => setShowConfirmation(true)}>
+          <Text style={styles.confirmButtonText}>Confirmar</Text>
+        </TouchableOpacity>
+      </ScrollView>
+      <Modal visible={showConfirmation} transparent animationType="slide">
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text>¿Estás seguro de que deseas confirmar?</Text>
+            <TouchableOpacity onPress={handleConfirm} style={styles.modalButton}>
+              <Text>Aceptar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setShowConfirmation(false)} style={styles.modalButton}>
+              <Text>Cancelar</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {

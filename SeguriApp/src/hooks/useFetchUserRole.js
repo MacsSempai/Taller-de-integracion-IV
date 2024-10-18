@@ -9,8 +9,9 @@ const useFetchUserRole = (usuarioId) => {
   useEffect(() => {
     const fetchUserRole = async () => {
       try {
-        const response = await axios.get(`http://192.168.50.101:3000/roles/${usuarioId}`);
+        const response = await axios.get(`http://192.168.50.101:3000/api/rol/${usuarioId}`);
         const rolData = response.data[0]; // Asegúrate de que el rol viene en el primer índice
+        console.log(rolData);
         setUserRole(rolData ? rolData.nombre : null);
         setLoading(false);
       } catch (error) {

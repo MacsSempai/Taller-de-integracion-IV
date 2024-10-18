@@ -22,7 +22,7 @@ export const useUser = () => useContext(UserContext);
 
 export const UserProvider = ({ children }) => {
   // Agregamos el usuarioId además del rol
-  const [userRole, setUserRole] = useState(''); // Roles: 'Admin', 'Inspector', 'Cliente', 'Liquidador', 'Contratista'
+  const [userRole, setUserRole] = useState('Admin'); // Roles: 'Admin', 'Inspector', 'Cliente', 'Liquidador', 'Contratista'
   const [usuarioId, setUsuarioId] = useState(''); // ID del usuario
 
   return (

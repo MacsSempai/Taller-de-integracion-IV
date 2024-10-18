@@ -2,18 +2,18 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import { useUser } from '../contexts/UserContext'; // Importa el contexto
 import axios from 'axios';
-import useFetchUserRole from '../hooks/useFetchUserRole'; // Importa el hook personalizado
 
 export default function HomeScreen({ navigation }) {
   const { usuarioId } = useUser(); // Accede al usuarioId desde el contexto
-  const { userRole, loading: roleLoading, error: roleError } = useFetchUserRole(usuarioId); // Usa el hook personalizado
+  const { userRole } = useUser(); // Accede al rol del usuario desde el contexto
   const [casos, setCasos] = useState([]);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchCasos = async () => {
       try {
-        const response = await axios.get(`http://192.168.50.101:3000/casos/${usuarioId}`);
+        const response = await axios.get(`http://192.168.50.101:3000/api/${usuarioId}/usuario`);
+        console.log('Casos:', response.data);
         setCasos(response.data);
         setError(null);
       } catch (error) {
@@ -27,23 +27,6 @@ export default function HomeScreen({ navigation }) {
     }
   }, [usuarioId]);
 
-  // Si ocurre un error en la carga del rol, lo manejamos aquí
-  if (roleError) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>{roleError}</Text>
-      </View>
-    );
-  }
-
-  // Mostrar indicador de carga mientras se obtiene el rol del usuario
-  if (roleLoading) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.infoText}>Cargando rol del usuario...</Text>
-      </View>
-    );
-  }
 
   if (error) {
     return (

@@ -1,23 +1,57 @@
 import React, { useState } from 'react';
-import { View, TextInput, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TextInput, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import axios from 'axios';
 import { useUser } from '../contexts/UserContext';
 
 export default function LoginScreen({ navigation }) {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
-  const { setUserRole, setUsuarioId } = useUser(); 
+  const [loading, setLoading] = useState(false); // Estado de carga
+  const { setUsuarioId, setUserRole } = useUser(); // Unifica el uso del contexto
 
   const handleLogin = async () => {
+    setLoading(true); // Iniciar carga
+    setError(null); // Resetear error al intentar login
     try {
-      const response = await axios.post('http://192.168.50.101:3000/login', { correo: username, contraseña: password });
-      const { userRole, usuarioId } = response.data;
-      setUserRole(userRole); 
-      setUsuarioId(usuarioId); 
-      navigation.navigate('Home');
+      console.log('Iniciando login...');
+      const response = await axios.post('http://192.168.50.101:3000/api/users/login', { 
+        email, 
+        password 
+      });
+      
+      console.log('Respuesta de login:', response.data);
+      const usuarioId = response.data.user.id; // Obtener el ID del usuario
+      console.log('ID del usuario:', usuarioId);
+      if (usuarioId) {
+        const userRole = await fetchUserRole(usuarioId); // Llama a la función para obtener el rol
+        console.log('Rol del usuario:', userRole);
+        if (userRole) {
+          setUsuarioId(usuarioId);
+          setUserRole(userRole);
+          navigation.navigate('Home');
+        } else {
+          setError('No se encontraron los datos del rol');
+        }
+      } else {
+        setError('No se encontraron los datos del usuario');
+      }
     } catch (error) {
+      console.error('Error en el login:', error);
       setError('Credenciales incorrectas');
+    } finally {
+      setLoading(false); // Detener carga
+    }
+  };
+
+  const fetchUserRole = async (usuarioId) => {
+    try {
+      const roleResponse = await axios.get(`http://192.168.50.101:3000/api/rol/${usuarioId}`); // Cambia esta URL según tu API
+      return roleResponse.data; // Asegúrate de que esto devuelva el rol correctamente
+    } catch (error) {
+      console.error('Error al obtener el rol del usuario:', error);
+      setError('No se pudo obtener el rol del usuario');
+      return null; // Devuelve null si hay un error
     }
   };
 
@@ -27,8 +61,10 @@ export default function LoginScreen({ navigation }) {
       <TextInput
         style={styles.input}
         placeholder="Correo electrónico"
-        value={username}
-        onChangeText={setUsername}
+        value={email}
+        onChangeText={setEmail}
+        autoCapitalize="none" // Para evitar que se capitalice el correo
+        keyboardType="email-address" // Teclado para correos
       />
       <TextInput
         style={styles.input}
@@ -38,9 +74,13 @@ export default function LoginScreen({ navigation }) {
         onChangeText={setPassword}
       />
       {error && <Text style={styles.errorText}>{error}</Text>}
-      <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-        <Text style={styles.loginButtonText}>Ingresar</Text>
-      </TouchableOpacity>
+      {loading ? ( // Mostrar spinner de carga
+        <ActivityIndicator size="large" color="#6200EE" />
+      ) : (
+        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+          <Text style={styles.loginButtonText}>Ingresar</Text>
+        </TouchableOpacity>
+      )}
       <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
         <Text style={styles.forgotPassword}>¿Olvidaste tu contraseña?</Text>
       </TouchableOpacity>

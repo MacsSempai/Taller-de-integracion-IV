@@ -77,36 +77,32 @@ export default function HistorialScreen({ navigation }) {
   };
 
   const handleNavigation = (item) => {
-    switch (userRole) {
-      case 'cliente':
-        navigation.navigate('Detalles', { casoId: item.id, clienteId: item.cliente_id });
-        break;
-      default:
-        console.error('Rol no válido para el historial:', userRole);
+    if (userRole === 'cliente') {
+      navigation.navigate('Detalles', { casoId: item.id, clienteId: item.cliente_id });
+    } else {
+      console.error('Rol no válido para el historial:', userRole);
     }
   };
 
   return (
     <View style={styles.container}>
-      {/* Si el caso tiene de estado abierto o aceptado no se muestra */}
-        <FlatList
-            data={casos}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => (
-            <TouchableOpacity
-                style={[styles.caseButton, item.estado === 'cerrado' ? styles.disabledButton : null]}
-                onPress={() => handleNavigation(item)}
-                disabled={item.estado === 'cerrado'}
-            >
-                <View style={styles.caseContent}>
-                <Text style={styles.caseDescription}>{item.descripcion}</Text>
-                <View style={[styles.statusBox, { backgroundColor: getEstadoColor(item.estado) }]}>
-                    <Text style={styles.statusText}>{item.estado}</Text>
-                </View>
-                </View>
-            </TouchableOpacity>
-            )}
-        />
+      <FlatList
+        data={casos}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={[styles.caseButton, item.estado === 'cerrado' || item.estado === 'rechazado' ? styles.disabledButton : null]}
+            onPress={() => handleNavigation(item)}
+          >
+            <View style={styles.caseContent}>
+              <Text style={styles.caseDescription}>{item.descripcion}</Text>
+              <View style={[styles.statusBox, { backgroundColor: getEstadoColor(item.estado) }]}>
+                <Text style={styles.statusText}>{item.estado}</Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+        )}
+      />
     </View>
   );
 }
