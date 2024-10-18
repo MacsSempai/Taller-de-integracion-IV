@@ -5,8 +5,8 @@ import {
   updateUser,
   getUserByID,
   updateUserPassword,
-} from '../controllers/userController.js';
-import { loginUser } from '../controllers/loginController.js';
+} from '../controllers/usuario.controller.js';
+import { loginUser } from '../controllers/login.controller.js';
 
 const router = express.Router();
 

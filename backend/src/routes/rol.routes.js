@@ -1,5 +1,5 @@
 import express from 'express';
-import { getRol, getRolporID, registerRol } from '../controllers/rolController.js';
+import { getRol, getRolporID, registerRol } from '../controllers/rol.controller.js';
 
 const router = express.Router();
 

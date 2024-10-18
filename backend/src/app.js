@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { pool } from './config/db.js';
 import archivoRoutes from './routes/archivo.routes.js';
 import casoRoutes from './routes/caso.routes.js';
 import contratistaRoutes from './routes/contratista.routes.js';
@@ -8,8 +9,8 @@ import materialRoutes from './routes/material.routes.js';
 import estadoRoutes from './routes/estado.routes.js';
 import sectorRoutes from './routes/sector.routes.js';  // Nueva ruta para sectores
 import subsectorRoutes from './routes/subsector.routes.js';  // Nueva ruta para subsectores
-import userRoutes from './routes/userRoutes.js';
-import rolRoutes from './routes/rolRoutes.js';
+import userRoutes from './routes/usuario.routes.js';
+import rolRoutes from './routes/rol.routes.js';
 
 dotenv.config();
 

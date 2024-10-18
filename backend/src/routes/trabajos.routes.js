@@ -5,7 +5,7 @@ import {
   getTrabajoByID, 
   updateTrabajo,
   deleteTrabajo,
-} from '../controllers/trabajoController.js';
+} from '../controllers/trabajos.controller.js';
 
 const router = express.Router();
 
