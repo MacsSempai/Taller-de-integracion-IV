@@ -1,11 +1,11 @@
-# back-integra2
+# back-integra4
 
 modulos npm install bcryptjs cors dotenv express jsonwebtoken mysql2 nodemon
 
 Instalen Eslint y Prettier 
 
 ```plaintext
-back-integra2/
+back-integra4/
 ├── src/
 │   ├── controllers/
 │   │   └── userController.js
