@@ -2,22 +2,19 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import { useUser } from '../contexts/UserContext'; // Importa el contexto
 import axios from 'axios';
-import useFetchUserRole from '../hooks/useFetchUserRole'; // Importa el hook personalizado
 
 export default function HistorialScreen({ navigation }) {
-  const { usuarioId } = useUser(); // Accede al usuarioId desde el contexto
-  const { userRole, loading: roleLoading, error: roleError } = useFetchUserRole(usuarioId); // Usa el hook personalizado
+  const { usuarioId, userRole } = useUser();
   const [casos, setCasos] = useState([]);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchCasos = async () => {
       try {
-        const response = await axios.get(`http://192.168.50.101:3000/casos/${usuarioId}`);
-        // Filtra los casos que no están en estado "abierto" o "aceptado"
-        const casosFiltrados = response.data.filter(
-          (caso) => caso.estado !== 'abierto' && caso.estado !== 'aceptado'
-        );
+        const response = await axios.get(`http://192.168.50.101:3000/api/casos/${usuarioId}/usuario`);
+        console.log('Casos:', response.data);
+        // Filtrar casos para solo mostrar los que están "Cerrados"
+        const casosFiltrados = response.data.filter(caso => getEstadoNombre(caso.ID_estado).toLowerCase() === 'cerrado');
         setCasos(casosFiltrados);
         setError(null);
       } catch (error) {
@@ -27,48 +24,18 @@ export default function HistorialScreen({ navigation }) {
     };
 
     if (usuarioId) {
-      fetchCasos(); // Llama a la función para obtener los casos filtrados
+      fetchCasos(); // Llama a la función para obtener los casos
     }
   }, [usuarioId]);
 
-  // Si ocurre un error en la carga del rol, lo manejamos aquí
-  if (roleError) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>{roleError}</Text>
-      </View>
-    );
-  }
-
-  // Mostrar indicador de carga mientras se obtiene el rol del usuario
-  if (roleLoading) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.infoText}>Cargando rol del usuario...</Text>
-      </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>{error}</Text>
-      </View>
-    );
-  }
-
-  if (casos.length === 0) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.infoText}>No se encontraron casos en el historial.</Text>
-      </View>
-    );
-  }
-
   const getEstadoColor = (estado) => {
     switch (estado) {
+      case 'abierto':
+        return '#3498db'; // Azul
       case 'cerrado':
         return '#95a5a6'; // Gris
+      case 'aceptado':
+        return '#2ecc71'; // Verde
       case 'rechazado':
         return '#e74c3c'; // Rojo
       default:
@@ -76,33 +43,54 @@ export default function HistorialScreen({ navigation }) {
     }
   };
 
+  const getEstadoNombre = (estadoId) => {
+    const estados = {
+      1: 'Abierto',
+      2: 'Cerrado',
+      3: 'Aceptado',
+      4: 'Rechazado',
+    };
+    return estados[estadoId] || 'Desconocido'; // Devuelve 'Desconocido' si el estado no está mapeado
+  };
+
   const handleNavigation = (item) => {
-    if (userRole === 'cliente') {
-      navigation.navigate('Detalles', { casoId: item.id, clienteId: item.cliente_id });
-    } else {
-      console.error('Rol no válido para el historial:', userRole);
+    switch (userRole) {
+      case 'Cliente':
+        navigation.navigate('Detalles', { casoId: item.ID_caso });
+        break;
+      case 'Contratista':
+        navigation.navigate('Detalles', { casoId: item.id });
+        break;
+      default:
+        console.error('Rol no válido:', userRole);
     }
   };
 
   return (
     <View style={styles.container}>
-      <FlatList
-        data={casos}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[styles.caseButton, item.estado === 'cerrado' || item.estado === 'rechazado' ? styles.disabledButton : null]}
-            onPress={() => handleNavigation(item)}
-          >
-            <View style={styles.caseContent}>
-              <Text style={styles.caseDescription}>{item.descripcion}</Text>
-              <View style={[styles.statusBox, { backgroundColor: getEstadoColor(item.estado) }]}>
-                <Text style={styles.statusText}>{item.estado}</Text>
+      {casos.length === 0 ? (
+        <View style={styles.infoContainer}>
+          <Text style={styles.infoText}>No se encontraron casos para mostrar.</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={casos}
+          keyExtractor={(item) => item.ID_caso ? item.ID_caso.toString() : Math.random().toString()} // Usa ID_caso como identificador
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={[styles.caseButton]} 
+              onPress={() => handleNavigation(item)} 
+            >
+              <View style={styles.caseContent}>
+                <Text style={styles.caseDescription}>{item.descripcion_siniestro}</Text>
+                <View style={[styles.statusBox, { backgroundColor: getEstadoColor(getEstadoNombre(item.ID_estado).toLowerCase()) }]}>
+                  <Text style={styles.statusText}>{getEstadoNombre(item.ID_estado)}</Text>
+                </View>
               </View>
-            </View>
-          </TouchableOpacity>
-        )}
-      />
+            </TouchableOpacity>
+          )}
+        />
+      )}
     </View>
   );
 }
@@ -128,10 +116,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#e0e0e0',
-  },
-  disabledButton: {
-    backgroundColor: '#f0f0f0',
-    borderColor: '#d0d0d0',
   },
   caseContent: {
     flexDirection: 'row',
@@ -164,14 +148,16 @@ const styles = StyleSheet.create({
     color: '#555',
     textAlign: 'center',
   },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
+  historialButton: {
+    backgroundColor: '#3498db',
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 15,
     alignItems: 'center',
   },
-  errorText: {
-    fontSize: 18,
-    color: '#e74c3c',
-    textAlign: 'center',
+  historialButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 16,
   },
 });

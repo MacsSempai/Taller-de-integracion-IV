@@ -1,163 +1,200 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
-import axios from 'axios';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 
-const DetalleCliente = ({ route }) => {
-  const { casoId } = route.params;
-  const [detalleCaso, setDetalleCaso] = useState(null);
-  const [sectores, setSectores] = useState([]);
-  const [subsectoresMap, setSubsectoresMap] = useState({});
-  const [error, setError] = useState(null);
+const CasoDetalle = ({ route }) => {
+  const { casoId } = route.params; // El ID del caso que se pasa a la vista
+  const [caso, setCaso] = useState(null);
   const [loading, setLoading] = useState(true);
+  
+  // Estado para manejar la apertura de los sectores
+  const [openSectors, setOpenSectors] = useState({});
 
   useEffect(() => {
-    const fetchDetalleCaso = async () => {
+    const fetchCaso = async () => {
       try {
-        const response = await axios.get(`http://192.168.50.101:3000/casos/${casoId}`);
-        const caso = response.data.find(c => c.id === casoId);
-        setDetalleCaso(caso || null);
-
-        const sectoresResponse = await axios.get(`http://192.168.50.101:3000/sectores/${casoId}`);
-        setSectores(sectoresResponse.data);
+        const response = await fetch(`http://192.168.50.101:3000/api/casos/${casoId}/completo`);
+        const data = await response.json();
+        console.log('Datos obtenidos del caso:', data); // Para ver qué datos llegan
+        setCaso(data);
       } catch (error) {
-        console.error("Error al obtener el detalle del caso:", error);
-        setError("Error al cargar los detalles del caso. Intenta nuevamente más tarde.");
+        console.error('Error al cargar el caso:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchDetalleCaso();
+    fetchCaso();
   }, [casoId]);
 
-  useEffect(() => {
-    const fetchSubsectores = async () => {
-      const subsectoresPromises = sectores.map(async (sector) => {
-        try {
-          const response = await axios.get(`http://192.168.50.101:3000/subsectores/${sector.id}`);
-          return { [sector.id]: response.data };
-        } catch (error) {
-          console.error("Error al obtener subsectores:", error);
-          return { [sector.id]: [] };
-        }
-      });
-
-      const subsectoresArray = await Promise.all(subsectoresPromises);
-      const subsectoresMap = Object.assign({}, ...subsectoresArray);
-      setSubsectoresMap(subsectoresMap);
-    };
-
-    if (sectores.length > 0) {
-      fetchSubsectores();
-    }
-  }, [sectores]);
+  // Función para alternar la apertura de un sector
+  const toggleSector = (index) => {
+    setOpenSectors((prev) => ({ ...prev, [index]: !prev[index] }));
+  };
 
   if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0000ff" />
-      </View>
-    );
+    return <Text style={styles.loadingText}>Cargando...</Text>;
   }
 
-  if (error) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>{error}</Text>
-      </View>
-    );
+  if (!caso || caso.length === 0) {
+    return <Text style={styles.errorText}>No se encontró información del caso</Text>;
   }
 
-  if (!detalleCaso) {
-    return (
-      <View style={styles.container}>
-        <Text>Cargando detalles del caso...</Text>
-      </View>
-    );
-  }
+  // Agrupar subsectores por ID_Sector
+  const groupedSubsectors = caso.reduce((acc, sector) => {
+    if (!acc[sector.id_sector]) {
+      acc[sector.id_sector] = { ...sector, subsectores: [] };
+    }
+    acc[sector.id_sector].subsectores.push({
+      nombre_sub_sector: sector.nombre_sub_sector,
+      tipo_reparacion: sector.tipo_reparacion,
+      nombre_material: sector.nombre_material,
+      cantidad_material: sector.cantidad_material,
+      precio_material: sector.precio_material,
+    });
+    return acc;
+  }, {});
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.title}>Detalles del Caso</Text>
-      <Text style={styles.detail}><Text style={styles.label}>Descripción:</Text> {detalleCaso.descripcion || 'N/A'}</Text>
-      <Text style={styles.detail}><Text style={styles.label}>Estado:</Text> {detalleCaso.estado || 'N/A'}</Text>
-      <Text style={styles.subtitle}>Sectores:</Text>
-      {sectores.length > 0 ? (
-        sectores.map((sector, index) => (
-          <View key={index} style={styles.sector}>
-            <Text style={styles.detail}><Text style={styles.label}>Sector:</Text> {sector.nombre || 'N/A'}</Text>
-            {subsectoresMap[sector.id] && subsectoresMap[sector.id].length > 0 ? (
-              subsectoresMap[sector.id].map((subsector, subIndex) => (
-                <View key={subIndex} style={styles.subsector}>
-                  <Text style={styles.detail}><Text style={styles.label}>Subsector:</Text> {subsector.nombre || 'N/A'}</Text>
-                  <Text style={styles.detail}><Text style={styles.label}>Cantidad:</Text> {subsector.cantidad_material || 'N/A'} m²</Text>
-                  <Text style={styles.detail}><Text style={styles.label}>Costo total:</Text> {subsector.costo_total || 'N/A'}</Text>
-                </View>
-              ))
-            ) : (
-              <Text>No hay subsectores disponibles.</Text>
+      <View style={styles.caseInfo}>
+        {caso[0] && (
+          <>
+            <Text style={styles.title}>Tipo de Siniestro:</Text>
+            <Text style={styles.info}>{caso[0].tipo_siniestro}</Text>
+            <Text style={styles.title}>Descripción:</Text>
+            <Text style={styles.info}>{caso[0].descripcion_siniestro}</Text>
+
+            {/* Información del inspector */}
+            <Text style={styles.subtitle}>Información del Inspector:</Text>
+            <Text style={styles.info}>
+              {caso[0].nombre_inspector} {caso[0].apellido_inspector}
+            </Text>
+            <Text style={styles.info}>Celular: {caso[0].celular_inspector}</Text>
+            <Text style={styles.info}>Correo: {caso[0].correo_inspector}</Text>
+
+            {/* Información del contratista */}
+            <Text style={styles.subtitle}>Información del Contratista:</Text>
+            <Text style={styles.info}>
+              {caso[0].nombre_contratista} {caso[0].apellido_contratista}
+            </Text>
+            <Text style={styles.info}>Celular: {caso[0].celular_contratista}</Text>
+            <Text style={styles.info}>Correo: {caso[0].correo_contratista}</Text>
+            <Text style={styles.info}>Área de trabajo: {caso[0].area_trabajo}</Text>
+          </>
+        )}
+      </View>
+
+      {/* Información de los sectores y subsectores */}
+      <View>
+        {Object.values(groupedSubsectors).map((sector, index) => (
+          <View key={index} style={styles.sectorInfo}>
+            <TouchableOpacity onPress={() => toggleSector(index)}>
+              <Text style={styles.title}>Sector: {sector.nombre_sector}</Text>
+            </TouchableOpacity>
+            {openSectors[index] && (
+              <>
+                {sector.dano_sector && (
+                  <Text style={styles.info}>Daño: {sector.dano_sector}</Text>
+                )}
+                {sector.porcentaje_perdida && (
+                  <Text style={styles.info}>
+                    Porcentaje Pérdida: {sector.porcentaje_perdida}%
+                  </Text>
+                )}
+                {sector.total_costo && (
+                  <Text style={styles.info}>Costo Total: {sector.total_costo}</Text>
+                )}
+
+                {/* Subsectores desplegables */}
+                {sector.subsectores.length > 0 && (
+                  <>
+                    <TouchableOpacity onPress={() => toggleSector(`${index}-sub`)}>
+                      <Text style={styles.title}>Subsectores</Text>
+                    </TouchableOpacity>
+                    {openSectors[`${index}-sub`] && sector.subsectores.map((subsector, subIndex) => (
+                      <View key={subIndex} style={styles.subsectorInfo}>
+                        {subsector.nombre_sub_sector && (
+                          <Text style={styles.info}>Subsector: {subsector.nombre_sub_sector}</Text>
+                        )}
+                        {subsector.tipo_reparacion && (
+                          <Text style={styles.info}>Tipo de Reparación: {subsector.tipo_reparacion}</Text>
+                        )}
+                        {subsector.nombre_material && (
+                          <Text style={styles.info}>Material: {subsector.nombre_material}</Text>
+                        )}
+                        {subsector.cantidad_material && (
+                          <Text style={styles.info}>Cantidad Material: {subsector.cantidad_material}</Text>
+                        )}
+                        {subsector.precio_material && (
+                          <Text style={styles.info}>Precio del Material: {subsector.precio_material}</Text>
+                        )}
+                      </View>
+                    ))}
+                  </>
+                )}
+              </>
             )}
           </View>
-        ))
-      ) : (
-        <Text>No hay sectores disponibles.</Text>
-      )}
+        ))}
+      </View>
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    padding: 20,
-    backgroundColor: '#f5f5f5',
+    padding: 16,
+    backgroundColor: '#fff',
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    color: '#333',
-  },
-  subtitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
+  loadingText: {
+    textAlign: 'center',
     marginTop: 20,
-    color: '#333',
-  },
-  label: {
-    fontWeight: 'bold',
-    color: '#555',
-  },
-  detail: {
-    fontSize: 16,
-    marginBottom: 5,
-    color: '#333',
-  },
-  sector: {
-    marginBottom: 15,
-    padding: 10,
-    backgroundColor: '#ffffff',
-    borderRadius: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 1.5,
-    elevation: 3,
-  },
-  subsector: {
-    marginLeft: 20,
-    marginTop: 10,
+    fontSize: 18,
   },
   errorText: {
-    color: 'red',
     textAlign: 'center',
+    marginTop: 20,
+    fontSize: 18,
+    color: 'red',
+  },
+  caseInfo: {
+    marginBottom: 16,
+    padding: 10,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 8,
+    backgroundColor: '#f9f9f9',
+  },
+  sectorInfo: {
+    marginBottom: 16,
+    padding: 10,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 8,
+    backgroundColor: '#f9f9f9',
+  },
+  subsectorInfo: {
+    marginLeft: 10,
+    borderColor: '#aaa',
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 10,
+    backgroundColor: '#e9e9e9',
+  },
+  title: {
+    fontWeight: 'bold',
+    fontSize: 16,
+    marginVertical: 4,
+  },
+  subtitle: {
+    fontWeight: 'bold',
+    fontSize: 14,
+    marginVertical: 8,
+  },
+  info: {
+    fontSize: 14,
+    marginVertical: 2,
   },
 });
 
-export default DetalleCliente;
+export default CasoDetalle;
