@@ -3,10 +3,17 @@ import { createStackNavigator } from '@react-navigation/stack';
 import LoginScreen from '../screens/LoginScreen';
 import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 import HomeScreen from '../screens/HomeScreen';
+<<<<<<< HEAD
 import InspeccionScreen from '../screens/InspeccionScreen';
 import CaseDetailScreen from '../screens/CaseDetailScreen';
 import LiquidatorCaseScreen from '../screens/LiquidadorScreen';
 
+=======
+import CaseDetailScreen from '../screens/CaseDetailScreen';
+import LiquidatorCaseScreen from '../screens/LiquidadorScreen';
+import InspeccionScreen from '../screens/InspeccionScreen';
+import HistorialScreen from '../screens/HistorialScreen';
+>>>>>>> origin/MSierra
 
 const Stack = createStackNavigator();
 
@@ -16,9 +23,19 @@ export default function StackNavigator() {
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
       <Stack.Screen name="Home" component={HomeScreen} />
+<<<<<<< HEAD
       <Stack.Screen name="Inspeccion" component={InspeccionScreen} />
       <Stack.Screen name="Detalles" component={CaseDetailScreen} />
       <Stack.Screen name="Liquidacion" component={LiquidatorCaseScreen} />
     </Stack.Navigator>
   );
 }
+=======
+      <Stack.Screen name="Detalles" component={CaseDetailScreen} />
+      <Stack.Screen name="Liquidacion" component={LiquidatorCaseScreen} />
+      <Stack.Screen name="Inspeccion" component={InspeccionScreen} />
+      <Stack.Screen name="Historial" component={HistorialScreen} />
+    </Stack.Navigator>
+  );
+}
+>>>>>>> origin/MSierra

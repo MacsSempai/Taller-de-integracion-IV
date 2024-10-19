@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
+<<<<<<< HEAD
 import { View, TextInput, Button, StyleSheet, Text } from 'react-native';
+=======
+import { View, TextInput, Text, TouchableOpacity, StyleSheet } from 'react-native';
+>>>>>>> origin/MSierra
 
 export default function ForgotPasswordScreen({ navigation }) {
   const [email, setEmail] = useState('');
@@ -33,14 +37,27 @@ export default function ForgotPasswordScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
+<<<<<<< HEAD
+=======
+      <Text style={styles.title}>Recuperar Contraseña</Text>
+>>>>>>> origin/MSierra
       <TextInput
         style={styles.input}
         placeholder="Correo electrónico"
         value={email}
         onChangeText={setEmail}
       />
+<<<<<<< HEAD
       <Button title="Recuperar Contraseña" onPress={handlePasswordReset} />
       <Button title="Volver al Login" onPress={() => navigation.navigate('Login')} />
+=======
+      <TouchableOpacity style={styles.resetButton} onPress={handlePasswordReset}>
+        <Text style={styles.resetButtonText}>Recuperar Contraseña</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('Login')}>
+        <Text style={styles.backButtonText}>Volver al Login</Text>
+      </TouchableOpacity>
+>>>>>>> origin/MSierra
     </View>
   );
 }
@@ -49,6 +66,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
+<<<<<<< HEAD
     padding: 20,
     backgroundColor: '#f5f5f5',
   },
@@ -61,5 +79,55 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     width: '100%',
     backgroundColor: '#fff',
+=======
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#f5f5f5',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 40,
+  },
+  input: {
+    height: 50,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 15,
+    marginBottom: 20,
+    width: '100%',
+    backgroundColor: '#fff',
+    fontSize: 16,
+    elevation: 2, // sombra para dar profundidad
+  },
+  resetButton: {
+    backgroundColor: '#6200EE',
+    paddingVertical: 15,
+    paddingHorizontal: 80,
+    borderRadius: 10,
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 20,
+    elevation: 3, // sombra para el botón
+  },
+  resetButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  backButton: {
+    paddingVertical: 15,
+    paddingHorizontal: 80,
+    borderRadius: 10,
+    width: '100%',
+    alignItems: 'center',
+    backgroundColor: '#ccc', // fondo gris para el botón de volver
+  },
+  backButtonText: {
+    color: '#333',
+    fontSize: 16,
+>>>>>>> origin/MSierra
   },
 });
