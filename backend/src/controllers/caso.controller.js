@@ -76,36 +76,42 @@ export const getCasoCompletoById = async (req, res) => {
   try {
     const query = `
       SELECT 
-        c.ID_caso,
-        c.tipo_siniestro,
-        c.descripcion_siniestro,
-        
-        -- Información del inspector
-        inspector.nombre AS nombre_inspector,
-        inspector.apellido AS apellido_inspector,
-        inspector.celular AS celular_inspector,
-        inspector.correo AS correo_inspector,
-        
-        -- Información del contratista
-        contratista.nombre AS nombre_contratista,
-        contratista.apellido AS apellido_contratista,
-        contratista.celular AS celular_contratista,
-        contratista.correo AS correo_contratista,
-        ct.area_trabajo,
-        
-        -- Información de los sectores
-        s.nombre_sector,
-        s.dano_sector,
-        s.porcentaje_perdida,
-        s.total_costo,
-        
-        -- Información de los subsectores
-        ss.nombre_sub_sector,
-        ss.tipo_reparacion,
-        ss.cantidad_material,
-        m.nombre_material,
-        m.precio AS precio_material,
-        m.medida
+          c.ID_caso,
+          c.tipo_siniestro,
+          c.descripcion_siniestro,
+          
+          -- Información del inspector
+          inspector.nombre AS nombre_inspector,
+          inspector.apellido AS apellido_inspector,
+          inspector.celular AS celular_inspector,
+          inspector.correo AS correo_inspector,
+          
+          -- Información del contratista
+          contratista.nombre AS nombre_contratista,
+          contratista.apellido AS apellido_contratista,
+          contratista.celular AS celular_contratista,
+          contratista.correo AS correo_contratista,
+          ct.area_trabajo,
+          
+          -- Información del cliente
+          cliente.nombre AS nombre_cliente,
+          cliente.apellido AS apellido_cliente,
+          cliente.celular AS celular_cliente,
+          cliente.correo AS correo_cliente,
+          
+          -- Información de los sectores
+          s.nombre_sector,
+          s.dano_sector,
+          s.porcentaje_perdida,
+          s.total_costo,
+          
+          -- Información de los subsectores
+          ss.nombre_sub_sector,
+          ss.tipo_reparacion,
+          ss.cantidad_material,
+          m.nombre_material,
+          m.precio AS precio_material,
+          m.medida
 
       FROM caso c
 
@@ -115,6 +121,9 @@ export const getCasoCompletoById = async (req, res) => {
       -- Join con el contratista
       INNER JOIN contratista ct ON c.ID_contratista = ct.ID_contratista
       INNER JOIN usuario contratista ON ct.ID_usuario = contratista.ID_usuario
+
+      -- Join con el cliente
+      INNER JOIN usuario cliente ON c.ID_cliente = cliente.ID_usuario
 
       -- Join con los sectores
       LEFT JOIN sector s ON c.ID_caso = s.ID_caso
@@ -126,6 +135,7 @@ export const getCasoCompletoById = async (req, res) => {
       LEFT JOIN material m ON ss.ID_material = m.ID_material
 
       WHERE c.ID_caso = ?;
+
     `;
 
     const [result] = await pool.query(query, [ID_caso]);
@@ -140,3 +150,28 @@ export const getCasoCompletoById = async (req, res) => {
     res.status(500).json({ message: 'Error al obtener la información completa del caso', error: error.message });
   }
 };
+
+// Controlador para actualizar el estado de un caso
+export const updateEstadoCaso = async (req, res) => {
+  try {
+    const { ID_caso } = req.params;
+    const { ID_estado } = req.body;
+
+    console.log('ID_caso:', ID_caso);
+    console.log('ID_estado:', ID_estado);
+
+    const [result] = await pool.query(
+      `UPDATE caso SET ID_estado = ? WHERE ID_caso = ?`,
+      [ID_estado, ID_caso]
+    );
+
+    if (result.affectedRows > 0) {
+      res.json({ message: 'Estado del caso actualizado exitosamente' });
+    } else {
+      res.status(404).json({ message: 'Caso no encontrado' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Error al actualizar el estado del caso', error: error.message });
+  }
+};
+

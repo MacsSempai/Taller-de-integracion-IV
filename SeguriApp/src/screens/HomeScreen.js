@@ -9,7 +9,7 @@ export default function HomeScreen({ navigation }) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchCasos = async () => {
+    const fetchCasosPorUsuario = async () => {
       try {
         const response = await axios.get(`http://192.168.50.101:3000/api/casos/${usuarioId}/usuario`);
         console.log('Casos:', response.data);
@@ -18,15 +18,32 @@ export default function HomeScreen({ navigation }) {
         setCasos(casosFiltrados);
         setError(null);
       } catch (error) {
-        console.error('Error al obtener los casos', error);
+        console.error('Error al obtener los casos por usuario', error);
         setError('Hubo un problema al obtener los casos. Por favor, intenta nuevamente.');
       }
     };
 
+    const fetchTodosLosCasos = async () => {
+      try {
+        const response = await axios.get(`http://192.168.50.101:3000/api/casos`);
+        console.log('Todos los casos:', response.data);
+        const casosFiltrados = response.data.filter(caso => getEstadoNombre(caso.ID_estado).toLowerCase() !== 'cerrado');
+        setCasos(casosFiltrados);
+        setError(null);
+      } catch (error) {
+        console.error('Error al obtener todos los casos', error);
+        setError('Hubo un problema al obtener todos los casos. Por favor, intenta nuevamente.');
+      }
+    };
+
     if (usuarioId) {
-      fetchCasos(); // Llama a la función para obtener los casos
+      if (userRole === 'Liquidador') {
+        fetchTodosLosCasos(); // Liquidador ve todos los casos
+      } else {
+        fetchCasosPorUsuario(); // Otros roles ven solo los casos asignados a su usuario
+      }
     }
-  }, [usuarioId]);
+  }, [usuarioId, userRole]);
 
   const getEstadoColor = (estado) => {
     switch (estado) {
@@ -59,10 +76,10 @@ export default function HomeScreen({ navigation }) {
         navigation.navigate('Detalles', { casoId: item.ID_caso });
         break;
       case 'Inspector':
-        navigation.navigate('Inspeccion', { casoId: item.id });
+        navigation.navigate('Inspeccion', { casoId: item.ID_caso });
         break;
       case 'Liquidador':
-        navigation.navigate('Liquidacion', { casoId: item.id });
+        navigation.navigate('Liquidacion', { casoId: item.ID_caso });
         break;
       default:
         console.error('Rol no válido:', userRole);
@@ -79,28 +96,38 @@ export default function HomeScreen({ navigation }) {
           <Text style={styles.historialButtonText}>Ver Historial</Text>
         </TouchableOpacity>
       )}
-      {casos.length === 0 ? (
+      {error ? (
         <View style={styles.infoContainer}>
-          <Text style={styles.infoText}>No se encontraron casos para mostrar.</Text>
+          <Text style={styles.infoText}>{error}</Text>
         </View>
       ) : (
-        <FlatList
-          data={casos}
-          keyExtractor={(item) => item.ID_caso ? item.ID_caso.toString() : Math.random().toString()} // Usa ID_caso como identificador
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={[styles.caseButton]} 
-              onPress={() => handleNavigation(item)} 
-            >
-              <View style={styles.caseContent}>
-                <Text style={styles.caseDescription}>{item.descripcion_siniestro}</Text>
-                <View style={[styles.statusBox, { backgroundColor: getEstadoColor(getEstadoNombre(item.ID_estado).toLowerCase()) }]}>
-                  <Text style={styles.statusText}>{getEstadoNombre(item.ID_estado)}</Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-          )}
-        />
+        casos.length === 0 ? (
+          <View style={styles.infoContainer}>
+            <Text style={styles.infoText}>No se encontraron casos para mostrar.</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={casos}
+            keyExtractor={(item) => item.ID_caso ? item.ID_caso.toString() : Math.random().toString()} // Usa ID_caso como identificador
+            renderItem={({ item }) => {
+              const estadoNombre = getEstadoNombre(item.ID_estado).toLowerCase(); // Optimización
+              return (
+                <TouchableOpacity
+                  style={[styles.caseButton]} 
+                  onPress={() => handleNavigation(item)} 
+                >
+                  <View style={styles.caseContent}>
+                    <Text style={styles.caseDescription}>{item.descripcion_siniestro}</Text>
+                    <View style={[styles.statusBox, { backgroundColor: getEstadoColor(estadoNombre) }]}>
+                      <Text style={styles.statusText}>{getEstadoNombre(item.ID_estado)}</Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              );
+            }}
+            initialNumToRender={10} // Optimización para FlatList
+          />
+        )
       )}
     </View>
   );
