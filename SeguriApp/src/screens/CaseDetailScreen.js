@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { useUser } from '../contexts/UserContext'; // Importa el contexto
 
 const CasoDetalle = ({ route }) => {
   const { casoId } = route.params; // El ID del caso que se pasa a la vista
+  const { userRole } = useUser(); // Obtén el rol del usuario
   const [caso, setCaso] = useState(null);
   const [loading, setLoading] = useState(true);
   
@@ -32,7 +34,7 @@ const CasoDetalle = ({ route }) => {
   };
 
   if (loading) {
-    return <Text style={styles.loadingText}>Cargando...</Text>;
+    return <ActivityIndicator style={styles.loadingIndicator} size="large" color="#007bff" />;
   }
 
   if (!caso || caso.length === 0) {
@@ -64,22 +66,44 @@ const CasoDetalle = ({ route }) => {
             <Text style={styles.title}>Descripción:</Text>
             <Text style={styles.info}>{caso[0].descripcion_siniestro}</Text>
 
-            {/* Información del inspector */}
-            <Text style={styles.subtitle}>Información del Inspector:</Text>
-            <Text style={styles.info}>
-              {caso[0].nombre_inspector} {caso[0].apellido_inspector}
-            </Text>
-            <Text style={styles.info}>Celular: {caso[0].celular_inspector}</Text>
-            <Text style={styles.info}>Correo: {caso[0].correo_inspector}</Text>
+            {/* Información del cliente - solo visible para Contratista e Inspector */}
+            {(userRole === 'Contratista' || userRole === 'Inspector') && (
+              <>
+                <Text style={styles.subtitle}>Información del Cliente:</Text>
+                <Text style={styles.info}>
+                  {caso[0].nombre_cliente} {caso[0].apellido_cliente}
+                </Text>
+                <Text style={styles.info}>Celular: {caso[0].celular_cliente}</Text>
+                <Text style={styles.info}>Correo: {caso[0].correo_cliente}</Text>
+                <Text style={styles.info}>Dirección: {caso[0].direccion_cliente}</Text>
+                <Text style={styles.info}>Comuna: {caso[0].comuna_cliente}</Text>
+              </>
+            )}
 
-            {/* Información del contratista */}
-            <Text style={styles.subtitle}>Información del Contratista:</Text>
-            <Text style={styles.info}>
-              {caso[0].nombre_contratista} {caso[0].apellido_contratista}
-            </Text>
-            <Text style={styles.info}>Celular: {caso[0].celular_contratista}</Text>
-            <Text style={styles.info}>Correo: {caso[0].correo_contratista}</Text>
-            <Text style={styles.info}>Área de trabajo: {caso[0].area_trabajo}</Text>
+            {/* Información del inspector - solo visible para Contratista y Cliente */}
+            {(userRole === 'Contratista' || userRole === 'Cliente') && (
+              <>
+                <Text style={styles.subtitle}>Información del Inspector:</Text>
+                <Text style={styles.info}>
+                  {caso[0].nombre_inspector} {caso[0].apellido_inspector}
+                </Text>
+                <Text style={styles.info}>Celular: {caso[0].celular_inspector}</Text>
+                <Text style={styles.info}>Correo: {caso[0].correo_inspector}</Text>
+              </>
+            )}
+
+            {/* Información del contratista - solo visible para Inspector y Cliente */}
+            {(userRole === 'Inspector' || userRole === 'Cliente') && (
+              <>
+                <Text style={styles.subtitle}>Información del Contratista:</Text>
+                <Text style={styles.info}>
+                  {caso[0].nombre_contratista} {caso[0].apellido_contratista}
+                </Text>
+                <Text style={styles.info}>Celular: {caso[0].celular_contratista}</Text>
+                <Text style={styles.info}>Correo: {caso[0].correo_contratista}</Text>
+                <Text style={styles.info}>Área de trabajo: {caso[0].area_trabajo}</Text>
+              </>
+            )}
           </>
         )}
       </View>
@@ -143,57 +167,72 @@ const CasoDetalle = ({ route }) => {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     padding: 16,
-    backgroundColor: '#fff',
+    backgroundColor: '#f7f9fc',
   },
-  loadingText: {
-    textAlign: 'center',
-    marginTop: 20,
-    fontSize: 18,
+  loadingIndicator: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f7f9fc',
   },
   errorText: {
     textAlign: 'center',
     marginTop: 20,
     fontSize: 18,
-    color: 'red',
+    color: '#e74c3c',
   },
   caseInfo: {
     marginBottom: 16,
-    padding: 10,
-    borderColor: '#ccc',
+    padding: 20,
+    borderColor: '#ddd',
     borderWidth: 1,
-    borderRadius: 8,
-    backgroundColor: '#f9f9f9',
+    borderRadius: 10,
+    backgroundColor: '#ffffff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   sectorInfo: {
     marginBottom: 16,
-    padding: 10,
-    borderColor: '#ccc',
+    padding: 20,
+    borderColor: '#ddd',
     borderWidth: 1,
-    borderRadius: 8,
-    backgroundColor: '#f9f9f9',
+    borderRadius: 10,
+    backgroundColor: '#ffffff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   subsectorInfo: {
     marginLeft: 10,
-    borderColor: '#aaa',
+    borderColor: '#bbb',
     borderWidth: 1,
     borderRadius: 8,
     padding: 10,
-    backgroundColor: '#e9e9e9',
+    backgroundColor: '#f1f1f1',
   },
   title: {
     fontWeight: 'bold',
-    fontSize: 16,
+    fontSize: 18,
     marginVertical: 4,
+    color: '#2c3e50',
   },
   subtitle: {
     fontWeight: 'bold',
-    fontSize: 14,
+    fontSize: 16,
     marginVertical: 8,
+    color: '#34495e',
   },
   info: {
     fontSize: 14,
     marginVertical: 2,
+    color: '#555',
   },
 });
 

@@ -7,6 +7,8 @@ import CaseDetailScreen from '../screens/CaseDetailScreen';
 import LiquidatorCaseScreen from '../screens/LiquidadorScreen';
 import InspeccionScreen from '../screens/InspeccionScreen';
 import HistorialScreen from '../screens/HistorialScreen';
+import CasoContratista from '../screens/ContratistaScreen';
+import AbrirCasoScreen from '../screens/AbrirCasoScreen';
 
 const Stack = createStackNavigator();
 
@@ -20,6 +22,8 @@ export default function StackNavigator() {
       <Stack.Screen name="Liquidacion" component={LiquidatorCaseScreen} />
       <Stack.Screen name="Inspeccion" component={InspeccionScreen} />
       <Stack.Screen name="Historial" component={HistorialScreen} />
+      <Stack.Screen name="Contratista" component={CasoContratista} />
+      <Stack.Screen name="AbrirCaso" component={AbrirCasoScreen} />
     </Stack.Navigator>
   );
 }

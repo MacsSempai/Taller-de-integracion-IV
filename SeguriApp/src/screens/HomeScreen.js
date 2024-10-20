@@ -81,6 +81,9 @@ export default function HomeScreen({ navigation }) {
       case 'Liquidador':
         navigation.navigate('Liquidacion', { casoId: item.ID_caso });
         break;
+      case 'Contratista':
+        navigation.navigate('Contratista', { casoId: item.ID_caso });
+        break;
       default:
         console.error('Rol no válido:', userRole);
     }
@@ -88,10 +91,10 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      {userRole === 'Cliente' && (
+      {(userRole === 'Cliente' || userRole === 'Inspector' || userRole === 'Contratista') && (
         <TouchableOpacity
           style={styles.historialButton}
-          onPress={() => navigation.navigate('Historial')} // Navega a la pantalla del historial
+          onPress={() => navigation.navigate('Historial')}
         >
           <Text style={styles.historialButtonText}>Ver Historial</Text>
         </TouchableOpacity>
@@ -128,6 +131,16 @@ export default function HomeScreen({ navigation }) {
             initialNumToRender={10} // Optimización para FlatList
           />
         )
+      )}
+      
+      {/* Botón para abrir un caso (Solo visible para Cliente) */}
+      {userRole === 'Cliente' && (
+        <TouchableOpacity
+          style={styles.newCaseButton}
+          onPress={() => navigation.navigate('AbrirCaso')} // Navega a la pantalla para abrir un nuevo caso
+        >
+          <Text style={styles.newCaseButtonText}>Abrir Nuevo Caso</Text>
+        </TouchableOpacity>
       )}
     </View>
   );
@@ -194,6 +207,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   historialButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  newCaseButton: {
+    backgroundColor: '#2ecc71',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    right: 20,
+  },
+  newCaseButtonText: {
     color: '#fff',
     fontWeight: '600',
     fontSize: 16,
