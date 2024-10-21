@@ -1,9 +1,9 @@
-import { Router } from 'express';
-import { uploadExcel } from '../controllers/archivo.controller.js';
+import express from 'express';
+import { uploadExcel } from '../controllers/archivo.controller.js'; // Asegúrate de importar el controlador correcto
 
-const router = Router();
+const router = express.Router();
 
-// Ruta para la subida de archivos Excel
+// Definir la ruta POST para subir el archivo Excel
 router.post('/upload-excel', uploadExcel);
 
 export default router;

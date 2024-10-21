@@ -6,6 +6,7 @@ import {
   updateTrabajo,
   deleteTrabajo,
 } from '../controllers/trabajos.controller.js';
+// src/routes/trabajos.routes.js
 
 const router = express.Router();
 
@@ -181,5 +182,18 @@ router.put('/:id', updateTrabajo);
  *         description: Error en el servidor
  */
 router.delete('/:id', deleteTrabajo);
+
+export default router;
+
+import { Router } from 'express';
+import { getTrabajosBySubSector, createTrabajo } from '../controllers/trabajos.controller.js';
+
+const router = Router();
+
+// Ruta para obtener trabajos por ID de SubSector
+router.get('/trabajos/:subSectorId', getTrabajosBySubSector);
+
+// Ruta para crear un nuevo trabajo (opcional)
+router.post('/trabajos', createTrabajo);
 
 export default router;
