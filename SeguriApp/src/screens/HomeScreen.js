@@ -1,83 +1,107 @@
-<<<<<<< HEAD
-import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, ActivityIndicator, TouchableOpacity, StyleSheet } from 'react-native';
-=======
 import React, { useEffect, useState } from 'react'; 
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
->>>>>>> origin/MSierra
 import { useUser } from '../contexts/UserContext'; // Importa el contexto
 import axios from 'axios';
 
 export default function HomeScreen({ navigation }) {
-<<<<<<< HEAD
-  const { usuarioId } = useUser(); // Accede al userRole y usuarioId desde el contexto
-  const [userRole, setUserRole] = useState(null); // Estado local para el rol del usuario
-=======
   const { usuarioId, userRole } = useUser();
->>>>>>> origin/MSierra
   const [casos, setCasos] = useState([]);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchCasos = async () => {
+    const fetchCasosPorUsuario = async () => {
       try {
-<<<<<<< HEAD
-        const response = await axios.get(`http://192.168.1.4:3000/casos/${usuarioId}`);
-        setCasos(response.data);
-=======
-        const response = await axios.get(`http://192.168.50.101:3000/api/casos/${usuarioId}/usuario`);
+        const response = await axios.get('http://192.168.50.101:3000/api/casos/${usuarioId}/usuario');
         console.log('Casos:', response.data);
         // Filtrar casos para ocultar los que están "Cerrados"
         const casosFiltrados = response.data.filter(caso => getEstadoNombre(caso.ID_estado).toLowerCase() !== 'cerrado');
         setCasos(casosFiltrados);
->>>>>>> origin/MSierra
         setError(null);
       } catch (error) {
-        console.error('Error al obtener los casos', error);
+        console.error('Error al obtener los casos por usuario', error);
         setError('Hubo un problema al obtener los casos. Por favor, intenta nuevamente.');
       }
     };
 
-    if (usuarioId) {
-      fetchCasos(); // Llama a la función para obtener los casos
-    }
-<<<<<<< HEAD
-
-    const fetchUserRole = async () => {
-      if (usuarioId) {
-        try {
-          const response = await axios.get(`http://192.168.1.4:3000/roles/${usuarioId}`);
-          const rolData = response.data[0]; // Asegúrate de que la API devuelva el rol en el primer elemento
-          setUserRole(rolData ? rolData.nombre : null);
-        } catch (error) {
-          console.error('Error al obtener el rol del usuario:', error);
-        }
+    const fetchTodosLosCasos = async () => {
+      try {
+        const response = await axios.get('http://192.168.50.101:3000/api/casos');
+        console.log('Todos los casos:', response.data);
+        const casosFiltrados = response.data.filter(caso => getEstadoNombre(caso.ID_estado).toLowerCase() !== 'cerrado');
+        setCasos(casosFiltrados);
+        setError(null);
+      } catch (error) {
+        console.error('Error al obtener todos los casos', error);
+        setError('Hubo un problema al obtener todos los casos. Por favor, intenta nuevamente.');
+      }
+    };
+    const createUser = async (newUser) => {
+      try {
+        const response = await axios.post('http://192.168.1.11:3000/api/users', newUser);
+        console.log('Usuario creado:', response.data);
+        alert('Usuario creado correctamente');
+      } catch (error) {
+        console.error('Error al crear usuario:', error);
+        setError('Hubo un problema al crear el usuario.');
+      }
+    };
+    
+    const deleteUser = async (userId) => {
+      try {
+        await axios.delete(`http://192.168.1.11:3000/api/users/${userId}`);
+        console.log('Usuario eliminado:', userId);
+        alert('Usuario eliminado correctamente');
+      } catch (error) {
+        console.error('Error al eliminar usuario:', error);
+        setError('Hubo un problema al eliminar el usuario.');
+      }
+    };
+    
+    const updateMaterialPrice = async (materialId, newPrice) => {
+      try {
+        const response = await axios.put(`http://192.168.1.11:3000/api/materials/${materialId}`, { price: newPrice });
+        console.log('Precio actualizado:', response.data);
+        alert('Precio de material actualizado correctamente');
+      } catch (error) {
+        console.error('Error al actualizar el precio del material:', error);
+        setError('Hubo un problema al actualizar el precio del material.');
       }
     };
 
-    fetchUserRole();
-  }, [usuarioId]);
+    if (usuarioId) {
+      if (userRole === 'Liquidador') {
+        fetchTodosLosCasos(); // Liquidador ve todos los casos
+      } else {
+        fetchCasosPorUsuario(); // Otros roles ven solo los casos asignados a su usuario
+      }
+    }
+    if (usuarioId) {
+      if (userRole === 'Administrador') {
+        // Aquí se ejecutan las funcionalidades específicas para el administrador.
+        console.log('Acceso de administrador concedido');
+        
+        // Ejemplo de cómo ejecutar estas funciones:
+        const handleCreateUser = (newUser) => {
+          createUser(newUser);
+        };
+    
+        const handleDeleteUser = (userId) => {
+          deleteUser(userId);
+        };
+    
+        const handleUpdateMaterialPrice = (materialId, newPrice) => {
+          updateMaterialPrice(materialId, newPrice);
+        };
+    
+        // Estas funciones pueden ser llamadas según la acción que realice el administrador
+      } else {
+        // Si el usuario no es administrador, puede ejecutar otras acciones o ver otros datos
+        console.log('No tiene acceso de administrador');
+      }
+    }
+    
+  }, [usuarioId, userRole]);
 
-  if (error) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>{error}</Text>
-      </View>
-    );
-  }
-
-  if (casos.length === 0) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.infoText}>No se encontraron casos para mostrar.</Text>
-      </View>
-    );
-  }
-
-=======
-  }, [usuarioId]);
-
->>>>>>> origin/MSierra
   const getEstadoColor = (estado) => {
     switch (estado) {
       case 'abierto':
@@ -93,61 +117,6 @@ export default function HomeScreen({ navigation }) {
     }
   };
 
-<<<<<<< HEAD
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Casos del Usuario</Text>
-
-      {userRole === 'cliente' && (
-        <View>
-          <Text style={styles.infoText}>
-            Aquí puedes ver tus casos asignados como cliente.
-          </Text>
-          <FlatList
-            data={casos}
-            keyExtractor={(item) => item.id.toString()}
-          />
-        </View>
-      )}
-
-      {userRole === 'inspector' && (
-        <View style={styles.container}>
-        <FlatList
-          data={casos}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => {
-            const isClickable = item.estado === 'abierto'; // Verifica si el caso está abierto
-
-            return (
-              <TouchableOpacity
-                style={[styles.caseButton, !isClickable && styles.disabledButton]} // Aplica el estilo de deshabilitado si no es clickeable
-                onPress={() => isClickable && navigation.navigate('Inspeccion', { casoId: item.id, clienteId: item.cliente_id })} // Navega a la pantalla de inspección
-                disabled={!isClickable} // Deshabilita la interacción si no está abierto
-              >
-                <View style={styles.caseContent}>
-                  <Text style={styles.caseDescription}>{item.descripcion}</Text>
-                  <View style={[styles.statusBox, { backgroundColor: getEstadoColor(item.estado) }]}>
-                    <Text style={styles.statusText}>{item.estado}</Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            );
-          }}
-        />
-      </View>
-      )}
-
-      {userRole === 'liquidador' && (
-        <View>
-          <Text style={styles.infoText}>
-            Estos son los casos que puedes revisar como liquidador.
-          </Text>
-          <FlatList
-            data={casos}
-            keyExtractor={(item) => item.id.toString()}
-          />
-        </View>
-=======
   const getEstadoNombre = (estadoId) => {
     const estados = {
       1: 'Abierto',
@@ -164,10 +133,13 @@ export default function HomeScreen({ navigation }) {
         navigation.navigate('Detalles', { casoId: item.ID_caso });
         break;
       case 'Inspector':
-        navigation.navigate('Inspeccion', { casoId: item.id });
+        navigation.navigate('Inspeccion', { casoId: item.ID_caso });
         break;
       case 'Liquidador':
-        navigation.navigate('Liquidacion', { casoId: item.id });
+        navigation.navigate('Liquidacion', { casoId: item.ID_caso });
+        break;
+      case 'Contratista':
+        navigation.navigate('Detalles', { casoId: item.ID_caso });
         break;
       default:
         console.error('Rol no válido:', userRole);
@@ -184,29 +156,38 @@ export default function HomeScreen({ navigation }) {
           <Text style={styles.historialButtonText}>Ver Historial</Text>
         </TouchableOpacity>
       )}
-      {casos.length === 0 ? (
+      {error ? (
         <View style={styles.infoContainer}>
-          <Text style={styles.infoText}>No se encontraron casos para mostrar.</Text>
+          <Text style={styles.infoText}>{error}</Text>
         </View>
       ) : (
-        <FlatList
-          data={casos}
-          keyExtractor={(item) => item.ID_caso ? item.ID_caso.toString() : Math.random().toString()} // Usa ID_caso como identificador
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={[styles.caseButton]} 
-              onPress={() => handleNavigation(item)} 
-            >
-              <View style={styles.caseContent}>
-                <Text style={styles.caseDescription}>{item.descripcion_siniestro}</Text>
-                <View style={[styles.statusBox, { backgroundColor: getEstadoColor(getEstadoNombre(item.ID_estado).toLowerCase()) }]}>
-                  <Text style={styles.statusText}>{getEstadoNombre(item.ID_estado)}</Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-          )}
-        />
->>>>>>> origin/MSierra
+        casos.length === 0 ? (
+          <View style={styles.infoContainer}>
+            <Text style={styles.infoText}>No se encontraron casos para mostrar.</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={casos}
+            keyExtractor={(item) => item.ID_caso ? item.ID_caso.toString() : Math.random().toString()} // Usa ID_caso como identificador
+            renderItem={({ item }) => {
+              const estadoNombre = getEstadoNombre(item.ID_estado).toLowerCase(); // Optimización
+              return (
+                <TouchableOpacity
+                  style={[styles.caseButton]} 
+                  onPress={() => handleNavigation(item)} 
+                >
+                  <View style={styles.caseContent}>
+                    <Text style={styles.caseDescription}>{item.descripcion_siniestro}</Text>
+                    <View style={[styles.statusBox, { backgroundColor: getEstadoColor(estadoNombre) }]}>
+                      <Text style={styles.statusText}>{getEstadoNombre(item.ID_estado)}</Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              );
+            }}
+            initialNumToRender={10} // Optimización para FlatList
+          />
+        )
       )}
     </View>
   );
@@ -218,24 +199,10 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: '#f7f7f7',
   },
-<<<<<<< HEAD
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    color: '#333',
-    textAlign: 'center',
-  },
-  caseButton: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    paddingVertical: 15, // Ajustado para mayor responsividad
-=======
   caseButton: {
     backgroundColor: '#fff',
     borderRadius: 10,
     paddingVertical: 15,
->>>>>>> origin/MSierra
     paddingHorizontal: 20,
     marginBottom: 15,
     shadowColor: '#000',
@@ -248,13 +215,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#e0e0e0',
   },
-<<<<<<< HEAD
-  disabledButton: {
-    backgroundColor: '#f0f0f0',
-    borderColor: '#d0d0d0',
-  },
-=======
->>>>>>> origin/MSierra
   caseContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -286,17 +246,6 @@ const styles = StyleSheet.create({
     color: '#555',
     textAlign: 'center',
   },
-<<<<<<< HEAD
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  errorText: {
-    fontSize: 18,
-    color: '#e74c3c',
-    textAlign: 'center',
-=======
   historialButton: {
     backgroundColor: '#3498db',
     padding: 15,
@@ -308,6 +257,5 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '600',
     fontSize: 16,
->>>>>>> origin/MSierra
   },
 });

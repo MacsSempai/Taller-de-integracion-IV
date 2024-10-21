@@ -9,10 +9,6 @@ export default function App() {
       <NavigationContainer>
         <StackNavigator />
       </NavigationContainer>
-    </UserProvider>
-<<<<<<< HEAD
-  );
-=======
-  ); 
->>>>>>> origin/MSierra
+
+    </UserProvider>); 
 }

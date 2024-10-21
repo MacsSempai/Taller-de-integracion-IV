@@ -1,30 +1,9 @@
 import React, { useState } from 'react';
-<<<<<<< HEAD
-import { View, TextInput, Button, StyleSheet } from 'react-native';
-=======
 import { View, TextInput, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
->>>>>>> origin/MSierra
 import axios from 'axios';
 import { useUser } from '../contexts/UserContext';
 
 export default function LoginScreen({ navigation }) {
-<<<<<<< HEAD
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState(null);
-  const { setUserRole, setUsuarioId } = useUser(); // Obtén los setters desde el contexto
-
-  const handleLogin = async () => {
-    try {
-      const response = await axios.post('http://192.168.1.4:3000/login', { correo: username, contraseña: password });
-      const { userRole, usuarioId } = response.data;
-      setUserRole(userRole); // Actualiza el rol del usuario
-      setUsuarioId(usuarioId); // Actualiza el ID del usuario
-      navigation.navigate('Home');
-    }
-    catch (error) {
-      setError('Credenciales incorrectas');
-=======
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
@@ -36,7 +15,7 @@ export default function LoginScreen({ navigation }) {
     setError(null); // Resetear error al intentar login
     try {
       console.log('Iniciando login...');
-      const response = await axios.post('http://192.168.50.101:3000/api/users/login', { 
+      const response = await axios.post('http://192.168.1.11:3000/api/users/login', { 
         email, 
         password 
       });
@@ -50,7 +29,11 @@ export default function LoginScreen({ navigation }) {
         if (userRole) {
           setUsuarioId(usuarioId);
           setUserRole(userRole);
-          navigation.navigate('Home');
+          if (userRole === 'Administrador') {
+            navigation.navigate('Admin'); // Redirigir automáticamente al Admin
+          } else {
+            navigation.navigate('Home'); // Redirigir a Home para otros roles
+          }
         } else {
           setError('No se encontraron los datos del rol');
         }
@@ -67,29 +50,17 @@ export default function LoginScreen({ navigation }) {
 
   const fetchUserRole = async (usuarioId) => {
     try {
-      const roleResponse = await axios.get(`http://192.168.50.101:3000/api/rol/${usuarioId}`); // Cambia esta URL según tu API
+      const roleResponse = await axios.get(`http://192.168.1.11:3000/api/rol/${usuarioId}`); // Cambia esta URL según tu API
       return roleResponse.data; // Asegúrate de que esto devuelva el rol correctamente
     } catch (error) {
       console.error('Error al obtener el rol del usuario:', error);
       setError('No se pudo obtener el rol del usuario');
       return null; // Devuelve null si hay un error
->>>>>>> origin/MSierra
     }
   };
 
   return (
     <View style={styles.container}>
-<<<<<<< HEAD
-      <TextInput
-        style={styles.input}
-        placeholder="Username"
-        value={username}
-        onChangeText={setUsername}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-=======
       <Text style={styles.title}>Iniciar Sesión</Text>
       <TextInput
         style={styles.input}
@@ -102,15 +73,10 @@ export default function LoginScreen({ navigation }) {
       <TextInput
         style={styles.input}
         placeholder="Contraseña"
->>>>>>> origin/MSierra
         value={password}
         secureTextEntry
         onChangeText={setPassword}
       />
-<<<<<<< HEAD
-      <Button title="Login" onPress={handleLogin} />
-      <Button title="Olvidé mi contraseña" onPress={() => navigation.navigate('ForgotPassword')} />
-=======
       {error && <Text style={styles.errorText}>{error}</Text>}
       {loading ? ( // Mostrar spinner de carga
         <ActivityIndicator size="large" color="#6200EE" />
@@ -122,7 +88,6 @@ export default function LoginScreen({ navigation }) {
       <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
         <Text style={styles.forgotPassword}>¿Olvidaste tu contraseña?</Text>
       </TouchableOpacity>
->>>>>>> origin/MSierra
     </View>
   );
 }
@@ -131,20 +96,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
-<<<<<<< HEAD
-    padding: 20,
-    backgroundColor: '#f5f5f5',
-  },
-  input: {
-    height: 40,
-    borderColor: '#ddd',
-    borderWidth: 1,
-    borderRadius: 5,
-    paddingHorizontal: 10,
-    marginBottom: 20,
-    width: '100%',
-    backgroundColor: '#fff',
-=======
     alignItems: 'center',
     padding: 20,
     backgroundColor: '#f5f5f5',
@@ -190,6 +141,5 @@ const styles = StyleSheet.create({
     color: '#6200EE',
     fontSize: 16,
     marginTop: 10,
->>>>>>> origin/MSierra
   },
 });
