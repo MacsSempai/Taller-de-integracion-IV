@@ -1,14 +1,17 @@
-import { Router } from 'express';
-import { createCaso, getCasos,  } from '../controllers/caso.controller.js';
+// src/routes/caso.routes.js
 
-const router = Router();
+import express from 'express';
+import { getCasos, getCasoByID, createCaso } from '../controllers/caso.controller.js';
 
-// Ruta para crear un caso
-router.post('/', createCaso);
+const router = express.Router();
 
 // Ruta para obtener todos los casos
 router.get('/', getCasos);
 
+// Ruta para obtener un caso por ID
+router.get('/:id', getCasoByID);
 
+// Ruta para crear un nuevo caso
+router.post('/', createCaso);
 
 export default router;

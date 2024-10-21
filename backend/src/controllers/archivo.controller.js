@@ -44,8 +44,7 @@ export const uploadExcel = async (req, res) => {
         tipo_siniestro,
         descripcion_siniestro,
         ID_contratista,
-        sector,
-        sub_sector,
+        sectores, // Asumiendo que se envía un array de sectores
         trabajosSeleccionados
       } = req.body;
 
@@ -74,18 +73,36 @@ export const uploadExcel = async (req, res) => {
         // Crear una nueva hoja con los datos seleccionados del formulario
         const worksheet = workbook.addWorksheet('Detalles del Caso');
 
-        // Añadir encabezados de columna
+        // Definir encabezados con estilos
         worksheet.columns = [
-          { header: 'Nombre', key: 'nombre', width: 30 },
-          { header: 'RUT', key: 'rut', width: 20 },
+          { header: 'Nombre', key: 'nombre', width: 25 },
+          { header: 'RUT', key: 'rut', width: 15 },
           { header: 'Dirección', key: 'direccion', width: 30 },
-          { header: 'Tipo de Siniestro', key: 'tipo_siniestro', width: 25 },
+          { header: 'Tipo de Siniestro', key: 'tipo_siniestro', width: 20 },
           { header: 'Descripción del Siniestro', key: 'descripcion_siniestro', width: 40 },
-          { header: 'Contratista', key: 'contratista', width: 30 },
-          { header: 'Sector', key: 'sector', width: 25 },
-          { header: 'SubSector', key: 'sub_sector', width: 25 },
-          { header: 'Trabajos Seleccionados', key: 'trabajos', width: 40 },
+          { header: 'Contratista', key: 'contratista', width: 20 },
+          { header: 'Sector', key: 'sector', width: 20 },
+          { header: 'SubSector', key: 'sub_sector', width: 20 },
+          { header: 'Trabajos Seleccionados', key: 'trabajos', width: 30 },
+          { header: 'Costo', key: 'costo', width: 15 },
         ];
+
+        // Aplicar estilos a los encabezados
+        worksheet.getRow(1).eachCell((cell) => {
+          cell.font = { bold: true, size: 12, color: { argb: 'FFFFFFFF' } };
+          cell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FF4F81BD' } // Azul
+          };
+          cell.alignment = { vertical: 'middle', horizontal: 'center' };
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' }
+          };
+        });
 
         // Manejar trabajosSeleccionados de manera segura
         let trabajosArray = [];
@@ -99,17 +116,213 @@ export const uploadExcel = async (req, res) => {
           return res.status(400).json({ error: 'trabajosSeleccionados no es un array válido' });
         }
 
-        // Añadir los datos del formulario a las filas
-        worksheet.addRow({
-          nombre,
-          rut,
-          direccion,
-          tipo_siniestro,
-          descripcion_siniestro,
-          contratista: ID_contratista,
-          sector,
-          sub_sector,
-          trabajos: trabajosArray.join(', '), // Convertir array a cadena
+        // Variable para acumular el costo total
+        let totalCosto = 0;
+
+        // Añadir los datos del formulario a las filas con formato
+        trabajosArray.forEach(trabajo => {
+          const fila = worksheet.addRow({
+            nombre,
+            rut,
+            direccion,
+            tipo_siniestro,
+            descripcion_siniestro,
+            contratista: ID_contratista,
+            sector: trabajo.sector,
+            sub_sector: trabajo.sub_sector,
+            trabajos: trabajo.nombre_trabajo,
+            costo: parseFloat(trabajo.costo_trabajo)
+          });
+
+          // Formatear la fila de datos
+          fila.eachCell((cell, colNumber) => {
+            if (colNumber === 10) { // Columna 'Costo'
+              cell.numFmt = '"$"#,##0.00;[Red]\-"$"#,##0.00';
+              cell.alignment = { vertical: 'middle', horizontal: 'right' };
+            } else {
+              cell.alignment = { vertical: 'middle', horizontal: 'left' };
+            }
+            cell.border = {
+              top: { style: 'thin' },
+              left: { style: 'thin' },
+              bottom: { style: 'thin' },
+              right: { style: 'thin' }
+            };
+            cell.font = { size: 11 };
+          });
+
+          // Acumular el costo
+          totalCosto += parseFloat(trabajo.costo_trabajo);
+        });
+
+        // Añadir una fila de total
+        const totalRow = worksheet.addRow({
+          nombre: '',
+          rut: '',
+          direccion: '',
+          tipo_siniestro: '',
+          descripcion_siniestro: '',
+          contratista: '',
+          sector: '',
+          sub_sector: '',
+          trabajos: 'Total',
+          costo: totalCosto
+        });
+
+        // Formatear la fila de total
+        totalRow.eachCell((cell, colNumber) => {
+          if (colNumber === 9) { // Columna 'Trabajos Seleccionados'
+            cell.font = { bold: true };
+            cell.alignment = { vertical: 'middle', horizontal: 'right' };
+          }
+          if (colNumber === 10) { // Columna 'Costo'
+            cell.numFmt = '"$"#,##0.00;[Red]\-"$"#,##0.00';
+            cell.font = { bold: true };
+            cell.fill = {
+              type: 'pattern',
+              pattern: 'solid',
+              fgColor: { argb: 'FFFFE699' } // Amarillo claro
+            };
+            cell.alignment = { vertical: 'middle', horizontal: 'right' };
+            cell.border = {
+              top: { style: 'double' },
+              left: { style: 'thin' },
+              bottom: { style: 'double' },
+              right: { style: 'thin' }
+            };
+          } else {
+            cell.border = {
+              top: { style: 'double' },
+              left: { style: 'thin' },
+              bottom: { style: 'double' },
+              right: { style: 'thin' }
+            };
+          }
+        });
+
+        // Añadir una hoja para Totales por Sector
+        const worksheetSector = workbook.addWorksheet('Totales por Sector');
+
+        // Definir encabezados con estilos
+        worksheetSector.columns = [
+          { header: 'Sector', key: 'sector', width: 25 },
+          { header: 'Total Costo', key: 'total_costo', width: 20 },
+        ];
+
+        // Aplicar estilos a los encabezados
+        worksheetSector.getRow(1).eachCell((cell) => {
+          cell.font = { bold: true, size: 12, color: { argb: 'FFFFFFFF' } };
+          cell.fill = {
+            type: 'pattern',
+            pattern: 'solid',
+            fgColor: { argb: 'FF4F81BD' } // Azul
+          };
+          cell.alignment = { vertical: 'middle', horizontal: 'center' };
+          cell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' }
+          };
+        });
+
+        // Calcular totales por sector
+        const totalesPorSector = {};
+
+        trabajosArray.forEach(trabajo => {
+          const sector = trabajo.sector;
+          const costo = parseFloat(trabajo.costo_trabajo);
+          if (totalesPorSector[sector]) {
+            totalesPorSector[sector] += costo;
+          } else {
+            totalesPorSector[sector] = costo;
+          }
+        });
+
+        // Añadir los totales por sector a la hoja
+        Object.keys(totalesPorSector).forEach(sector => {
+          const fila = worksheetSector.addRow({
+            sector,
+            total_costo: totalesPorSector[sector]
+          });
+
+          // Formatear la fila de datos
+          fila.eachCell((cell, colNumber) => {
+            if (colNumber === 2) { // Columna 'Total Costo'
+              cell.numFmt = '"$"#,##0.00;[Red]\-"$"#,##0.00';
+              cell.alignment = { vertical: 'middle', horizontal: 'right' };
+            } else {
+              cell.alignment = { vertical: 'middle', horizontal: 'left' };
+            }
+            cell.border = {
+              top: { style: 'thin' },
+              left: { style: 'thin' },
+              bottom: { style: 'thin' },
+              right: { style: 'thin' }
+            };
+            cell.font = { size: 11 };
+          });
+        });
+
+        // Añadir una fila de total general en la hoja de Totales por Sector
+        const totalSectorRow = worksheetSector.addRow({
+          sector: 'Total General',
+          total_costo: totalCosto
+        });
+
+        // Formatear la fila de total general
+        totalSectorRow.eachCell((cell, colNumber) => {
+          if (colNumber === 1) { // Columna 'Sector'
+            cell.font = { bold: true };
+            cell.alignment = { vertical: 'middle', horizontal: 'right' };
+          }
+          if (colNumber === 2) { // Columna 'Total Costo'
+            cell.numFmt = '"$"#,##0.00;[Red]\-"$"#,##0.00';
+            cell.font = { bold: true };
+            cell.fill = {
+              type: 'pattern',
+              pattern: 'solid',
+              fgColor: { argb: 'FFFFE699' } // Amarillo claro
+            };
+            cell.alignment = { vertical: 'middle', horizontal: 'right' };
+            cell.border = {
+              top: { style: 'double' },
+              left: { style: 'thin' },
+              bottom: { style: 'double' },
+              right: { style: 'thin' }
+            };
+          } else {
+            cell.border = {
+              top: { style: 'double' },
+              left: { style: 'thin' },
+              bottom: { style: 'double' },
+              right: { style: 'thin' }
+            };
+          }
+        });
+
+        // Autoajustar el ancho de las columnas según el contenido
+        worksheet.columns.forEach(column => {
+          let maxLength = 0;
+          column.eachCell({ includeEmpty: true }, cell => {
+            const columnLength = cell.value ? cell.value.toString().length : 10;
+            if (columnLength > maxLength ) {
+              maxLength = columnLength;
+            }
+          });
+          column.width = maxLength < 10 ? 10 : maxLength;
+        });
+
+        // Autoajustar el ancho de las columnas en Totales por Sector
+        worksheetSector.columns.forEach(column => {
+          let maxLength = 0;
+          column.eachCell({ includeEmpty: true }, cell => {
+            const columnLength = cell.value ? cell.value.toString().length : 10;
+            if (columnLength > maxLength ) {
+              maxLength = columnLength;
+            }
+          });
+          column.width = maxLength < 10 ? 10 : maxLength;
         });
 
         // Guardar el archivo Excel actualizado en una nueva ubicación para evitar sobrescribir el original
