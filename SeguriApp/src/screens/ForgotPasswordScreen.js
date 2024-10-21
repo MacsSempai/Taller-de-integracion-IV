@@ -4,30 +4,41 @@ import { View, TextInput, Text, TouchableOpacity, StyleSheet } from 'react-nativ
 export default function ForgotPasswordScreen({ navigation }) {
   const [email, setEmail] = useState('');
 
+  const validateEmail = (email) => {
+    const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return re.test(String(email).toLowerCase());
+  };
+
   const handlePasswordReset = async () => {
-    if (email) {
-      try {
-        const response = await fetch('https://tubackend.com/api/recover-password', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ email }),
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-          alert(`Se envió un enlace de recuperación a: ${email}`);
-        } else {
-          alert(data.message || 'Hubo un problema al intentar recuperar la contraseña.');
-        }
-      } catch (error) {
-        alert('Error de conexión, intenta de nuevo.');
-        console.error('Error:', error);
-      }
-    } else {
+    if (!email) {
       alert('Por favor ingresa tu correo electrónico');
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      alert('Por favor ingresa un correo electrónico válido');
+      return;
+    }
+
+    try {
+      const response = await fetch('https://192.168.1.11:3000/api/recover-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert(`Se envió un enlace de recuperación a: ${email}`);
+      } else {
+        alert(data.message || 'Hubo un problema al intentar recuperar la contraseña.');
+      }
+    } catch (error) {
+      alert('Error de conexión, intenta de nuevo.');
+      console.error('Error:', error);
     }
   };
 
@@ -74,7 +85,7 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: '#fff',
     fontSize: 16,
-    elevation: 2, // sombra para dar profundidad
+    elevation: 2,
   },
   resetButton: {
     backgroundColor: '#6200EE',
@@ -84,7 +95,7 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     marginBottom: 20,
-    elevation: 3, // sombra para el botón
+    elevation: 3,
   },
   resetButtonText: {
     color: '#fff',
@@ -97,7 +108,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     width: '100%',
     alignItems: 'center',
-    backgroundColor: '#ccc', // fondo gris para el botón de volver
+    backgroundColor: '#ccc',
   },
   backButtonText: {
     color: '#333',

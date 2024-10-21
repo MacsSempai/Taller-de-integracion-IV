@@ -5,6 +5,7 @@ import {
   updateUser,
   getUserByID,
   updateUserPassword,
+  deleteUser,
 } from '../controllers/usuario.controller.js';
 import { loginUser } from '../controllers/login.controller.js';
 
@@ -37,7 +38,7 @@ const router = express.Router();
  *         description: Error en el servidor
  */
 router.post('/', createUser);
-
+router.delete('/:id', deleteUser);
 /**
  * @openapi
  * /api/v1/users:
@@ -115,6 +116,7 @@ router.put('/:id', updateUser);
  *       500:
  *         description: Error en el servidor
  */
+
 router.post('/login', loginUser);
 
 router.get('/:id', getUserByID);

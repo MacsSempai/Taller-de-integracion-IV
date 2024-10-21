@@ -10,7 +10,7 @@ const LiquidarCaso = ({ route, navigation }) => {
   useEffect(() => {
     const fetchCaso = async () => {
       try {
-        const response = await fetch(`http://192.168.50.101:3000/api/casos/${casoId}/completo`);
+        const response = await fetch(`http://192.168.1.11:3000/api/casos/${casoId}/completo`);
         const data = await response.json();
         setCaso(data);
       } catch (error) {

@@ -7,14 +7,14 @@ const CasoDetalle = ({ route }) => {
   const { userRole } = useUser(); // Obtén el rol del usuario
   const [caso, setCaso] = useState(null);
   const [loading, setLoading] = useState(true);
-  
+
   // Estado para manejar la apertura de los sectores
   const [openSectors, setOpenSectors] = useState({});
 
   useEffect(() => {
     const fetchCaso = async () => {
       try {
-        const response = await fetch(`http://192.168.50.101:3000/api/casos/${casoId}/completo`);
+        const response = await fetch(`http://192.168.1.11:3000/api/casos/${casoId}/completo`);
         const data = await response.json();
         console.log('Datos obtenidos del caso:', data); // Para ver qué datos llegan
         setCaso(data);

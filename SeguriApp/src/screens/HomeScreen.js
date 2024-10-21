@@ -11,7 +11,7 @@ export default function HomeScreen({ navigation }) {
   useEffect(() => {
     const fetchCasosPorUsuario = async () => {
       try {
-        const response = await axios.get(`http://192.168.50.101:3000/api/casos/${usuarioId}/usuario`);
+        const response = await axios.get('http://192.168.50.101:3000/api/casos/${usuarioId}/usuario');
         console.log('Casos:', response.data);
         // Filtrar casos para ocultar los que están "Cerrados"
         const casosFiltrados = response.data.filter(caso => getEstadoNombre(caso.ID_estado).toLowerCase() !== 'cerrado');
