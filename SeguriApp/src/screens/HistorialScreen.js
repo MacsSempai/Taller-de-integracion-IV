@@ -2,31 +2,36 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import { useUser } from '../contexts/UserContext'; // Importa el contexto
 import axios from 'axios';
+import { useFocusEffect } from '@react-navigation/native'; // Importa useFocusEffect
 
 export default function HistorialScreen({ navigation }) {
   const { usuarioId, userRole } = useUser();
   const [casos, setCasos] = useState([]);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchCasos = async () => {
-      try {
-        const response = await axios.get(`http://192.168.1.11:3000/api/casos/${usuarioId}/usuario`);
-        console.log('Casos:', response.data);
-        // Filtrar casos para solo mostrar los que están "Cerrados"
-        const casosFiltrados = response.data.filter(caso => getEstadoNombre(caso.ID_estado).toLowerCase() === 'cerrado');
-        setCasos(casosFiltrados);
-        setError(null);
-      } catch (error) {
-        console.error('Error al obtener los casos', error);
-        setError('Hubo un problema al obtener los casos. Por favor, intenta nuevamente.');
-      }
-    };
-
-    if (usuarioId) {
-      fetchCasos(); // Llama a la función para obtener los casos
+  // Función para obtener los casos
+  const fetchCasos = async () => {
+    try {
+      const response = await axios.get(`http://192.168.55.1:3000/api/casos/${usuarioId}/usuario`);
+      console.log('Casos:', response.data);
+      // Filtrar casos para solo mostrar los que están "Cerrados"
+      const casosFiltrados = response.data.filter(caso => getEstadoNombre(caso.ID_estado).toLowerCase() === 'cerrado');
+      setCasos(casosFiltrados);
+      setError(null);
+    } catch (error) {
+      console.error('Error al obtener los casos', error);
+      setError('Hubo un problema al obtener los casos. Por favor, intenta nuevamente.');
     }
-  }, [usuarioId]);
+  };
+
+  // useFocusEffect se ejecuta cada vez que la pantalla gana foco
+  useFocusEffect(
+    React.useCallback(() => {
+      if (usuarioId) {
+        fetchCasos();
+      }
+    }, [usuarioId])
+  );
 
   const getEstadoColor = (estado) => {
     switch (estado) {
@@ -61,6 +66,8 @@ export default function HistorialScreen({ navigation }) {
       case 'Contratista':
         navigation.navigate('Detalles', { casoId: item.id });
         break;
+      case 'Inspector':
+        navigation.navigate('Detalles', { casoId: item.id });
       default:
         console.error('Rol no válido:', userRole);
     }

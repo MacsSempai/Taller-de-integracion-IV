@@ -15,7 +15,7 @@ export default function LoginScreen({ navigation }) {
     setError(null); // Resetear error al intentar login
     try {
       console.log('Iniciando login...');
-      const response = await axios.post('http://192.168.1.11:3000/api/users/login', { 
+      const response = await axios.post('http://192.168.55.1:3000/api/users/login', { 
         email, 
         password 
       });
@@ -50,7 +50,7 @@ export default function LoginScreen({ navigation }) {
 
   const fetchUserRole = async (usuarioId) => {
     try {
-      const roleResponse = await axios.get(`http://192.168.1.11:3000/api/rol/${usuarioId}`); // Cambia esta URL según tu API
+      const roleResponse = await axios.get(`http://192.168.55.1:3000/api/rol/${usuarioId}`); // Cambia esta URL según tu API
       return roleResponse.data; // Asegúrate de que esto devuelva el rol correctamente
     } catch (error) {
       console.error('Error al obtener el rol del usuario:', error);

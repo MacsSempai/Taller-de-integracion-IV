@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { useUser } from '../contexts/UserContext'; // Importa el contexto
 import axios from 'axios';
+import { Picker } from '@react-native-picker/picker'; // Importa el Picker
 
 export default function AbrirCasoScreen({ navigation }) {
   const { usuarioId } = useUser();
   const [descripcion, setDescripcion] = useState('');
-  const [tipo, setTipo] = useState('');
+  const [tipo, setTipo] = useState(''); // Estado para el tipo de siniestro
   const [loading, setLoading] = useState(false);
 
   const handleAbrirCaso = async () => {
@@ -18,10 +19,11 @@ export default function AbrirCasoScreen({ navigation }) {
     setLoading(true);
     
     try {
-      const response = await axios.post('http://192.168.50.101:3000/api/casos/nuevo', {
+      const response = await axios.post('http://192.168.55.1:3000/api/casos/nuevo', {
         tipo_siniestro: tipo,
         descripcion_siniestro: descripcion,
         ID_usuario: usuarioId,
+        ID_contratista: "6"
       });
 
       Alert.alert('Éxito', 'El caso ha sido abierto exitosamente.');
@@ -39,12 +41,21 @@ export default function AbrirCasoScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <Text style={styles.label}>Tipo de Siniestro</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Ingrese el tipo de siniestro"
-        value={tipo} // Cambiado a tipo
-        onChangeText={setTipo}
-      />
+      <View style={styles.pickerContainer}>
+        <Picker
+          selectedValue={tipo}
+          onValueChange={(itemValue) => setTipo(itemValue)}
+          style={styles.picker}
+        >
+          <Picker.Item label="Seleccione un tipo de siniestro" value="" />
+          <Picker.Item label="Accidente de tráfico" value="accidente_trafico" />
+          <Picker.Item label="Incendio" value="incendio" />
+          <Picker.Item label="Robo" value="robo" />
+          <Picker.Item label="Daño por agua" value="danio_agua" />
+          <Picker.Item label="Otros" value="otros" />
+        </Picker>
+      </View>
+
       <Text style={styles.label}>Descripción del Siniestro</Text>
       <TextInput
         style={styles.input}
@@ -58,7 +69,11 @@ export default function AbrirCasoScreen({ navigation }) {
         onPress={handleAbrirCaso}
         disabled={loading}
       >
-        <Text style={styles.buttonText}>{loading ? 'Abriendo...' : 'Abrir Caso'}</Text>
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.buttonText}>Abrir Caso</Text>
+        )}
       </TouchableOpacity>
     </View>
   );
@@ -97,5 +112,16 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '600',
     fontSize: 16,
+  },
+  pickerContainer: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 10,
+    marginBottom: 20,
+  },
+  picker: {
+    height: 50,
+    width: '100%',
   },
 });

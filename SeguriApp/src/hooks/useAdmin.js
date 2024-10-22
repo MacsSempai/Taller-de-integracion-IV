@@ -13,7 +13,7 @@ const useAdmin = (usuarioId) => {
   useEffect(() => {
     const fetchUserRole = async () => {
       try {
-        const response = await axios.get(`http://192.168.1.11:3000/api/rol/${usuarioId}`);
+        const response = await axios.get(`http://192.168.55.1:3000/api/rol/${usuarioId}`);
         const rolData = response.data[0]; // Asegúrate de que el rol viene en el primer índice
         console.log(rolData);
         setUserRole(rolData ? rolData.nombre : null);
@@ -32,7 +32,7 @@ const useAdmin = (usuarioId) => {
   // Obtener usuarios de la base de datos
   const fetchUsers = async () => {
     try {
-      const response = await axios.get('http://192.168.1.11:3000/api/users');
+      const response = await axios.get('http://192.168.55.1:3000/api/users');
       setUsers(response.data);
     } catch (err) {
       setError('Error al obtener los usuarios');
@@ -42,7 +42,7 @@ const useAdmin = (usuarioId) => {
   // Obtener casos de la base de datos
   const fetchCases = async () => {
     try {
-      const response = await axios.get('http://192.168.1.11:3000/api/casos');
+      const response = await axios.get('http://192.168.55.1:3000/api/casos');
       setCases(response.data);
     } catch (err) {
       setError('Error al obtener los casos');
@@ -52,7 +52,7 @@ const useAdmin = (usuarioId) => {
   // Obtener materiales de la base de datos
   const fetchMaterials = async () => {
     try {
-      const response = await axios.get('http://192.168.1.11:3000/api/materials');
+      const response = await axios.get('http://192.168.55.1:3000/api/materials');
       setMaterials(response.data);
     } catch (err) {
       setError('Error al obtener los materiales');
@@ -62,7 +62,7 @@ const useAdmin = (usuarioId) => {
   // Crear un nuevo usuario
   const createUser = async (newUser) => {
     try {
-      const response = await axios.post('http://192.168.1.11:3000/api/users', newUser);
+      const response = await axios.post('http://192.168.55.1:3000/api/users', newUser);
       setUsers([...users, response.data]); // Agregar el nuevo usuario a la lista
     } catch (err) {
       setError('Error al crear el usuario');
@@ -72,7 +72,7 @@ const useAdmin = (usuarioId) => {
   // Eliminar un usuario
   const deleteUser = async (userId) => {
     try {
-      await axios.delete(`http://192.168.1.11:3000/api/users/${userId}`);
+      await axios.delete(`http://192.168.55.1:3000/api/users/${userId}`);
       setUsers(users.filter(user => user.ID_usuario !== userId)); // Filtrar el usuario eliminado
     } catch (err) {
       setError('Error al eliminar el usuario');
@@ -82,7 +82,7 @@ const useAdmin = (usuarioId) => {
   // Actualizar precios de materiales
   const updateMaterialPrices = async (materialId, newPrice) => {
     try {
-      const response = await axios.put(`http://192.168.1.11:3000/api/materials/${materialId}`, { price: newPrice });
+      const response = await axios.put(`http://192.168.55.1:3000/api/materials/${materialId}`, { price: newPrice });
       setMaterials(materials.map(material => 
         material.ID_material === materialId ? { ...material, price: newPrice } : material
       ));
@@ -94,7 +94,7 @@ const useAdmin = (usuarioId) => {
   // Listar casos según el rol
   const listCasesByRole = async (roleId) => {
     try {
-      const response = await axios.get(`http://192.168.1.11:3000/api/casos/role/${roleId}`);
+      const response = await axios.get(`http://192.168.55.1:3000/api/casos/role/${roleId}`);
       setCases(response.data);
     } catch (err) {
       setError('Error al listar los casos por rol');

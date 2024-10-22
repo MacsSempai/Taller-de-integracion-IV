@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useUser } from '../contexts/UserContext'; // Importa el contexto
+import { useFocusEffect } from '@react-navigation/native'; // Importa useFocusEffect
 
 const CasoDetalle = ({ route }) => {
   const { casoId } = route.params; // El ID del caso que se pasa a la vista
@@ -11,22 +12,26 @@ const CasoDetalle = ({ route }) => {
   // Estado para manejar la apertura de los sectores
   const [openSectors, setOpenSectors] = useState({});
 
-  useEffect(() => {
-    const fetchCaso = async () => {
-      try {
-        const response = await fetch(`http://192.168.1.11:3000/api/casos/${casoId}/completo`);
-        const data = await response.json();
-        console.log('Datos obtenidos del caso:', data); // Para ver qué datos llegan
-        setCaso(data);
-      } catch (error) {
-        console.error('Error al cargar el caso:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchCaso = async () => {
+    try {
+      const response = await fetch(`http://192.168.55.1:3000/api/casos/${casoId}/completo`);
+      const data = await response.json();
+      console.log('Datos obtenidos del caso:', data); // Para ver qué datos llegan
+      setCaso(data);
+    } catch (error) {
+      console.error('Error al cargar el caso:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchCaso();
-  }, [casoId]);
+  // Se ejecuta cuando la pestaña recibe el enfoque
+  useFocusEffect(
+    useCallback(() => {
+      setLoading(true); // Muestra el indicador de carga
+      fetchCaso(); // Vuelve a cargar los datos cuando se enfoca la pantalla
+    }, [casoId])
+  );
 
   // Función para alternar la apertura de un sector
   const toggleSector = (index) => {
@@ -210,29 +215,26 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   subsectorInfo: {
-    marginLeft: 10,
-    borderColor: '#bbb',
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 10,
-    backgroundColor: '#f1f1f1',
+    marginTop: 10,
+    paddingLeft: 20,
+    borderLeftWidth: 2,
+    borderLeftColor: '#007bff',
   },
   title: {
+    fontSize: 16,
     fontWeight: 'bold',
-    fontSize: 18,
-    marginVertical: 4,
-    color: '#2c3e50',
+    color: '#007bff',
   },
   subtitle: {
-    fontWeight: 'bold',
     fontSize: 16,
-    marginVertical: 8,
+    fontWeight: 'bold',
+    marginTop: 10,
     color: '#34495e',
   },
   info: {
     fontSize: 14,
-    marginVertical: 2,
-    color: '#555',
+    color: '#2c3e50',
+    marginTop: 4,
   },
 });
 

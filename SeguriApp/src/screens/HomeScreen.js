@@ -1,49 +1,55 @@
-import React, { useEffect, useState } from 'react'; 
+import React, { useState, useCallback } from 'react'; 
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import { useUser } from '../contexts/UserContext'; // Importa el contexto
 import axios from 'axios';
+import { useFocusEffect } from '@react-navigation/native'; // Importa useFocusEffect
 
 export default function HomeScreen({ navigation }) {
   const { usuarioId, userRole } = useUser();
   const [casos, setCasos] = useState([]);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchCasosPorUsuario = async () => {
-      try {
-        const response = await axios.get('http://192.168.50.101:3000/api/casos/${usuarioId}/usuario');
-        console.log('Casos:', response.data);
-        // Filtrar casos para ocultar los que están "Cerrados"
-        const casosFiltrados = response.data.filter(caso => getEstadoNombre(caso.ID_estado).toLowerCase() !== 'cerrado');
-        setCasos(casosFiltrados);
-        setError(null);
-      } catch (error) {
-        console.error('Error al obtener los casos por usuario', error);
-        setError('Hubo un problema al obtener los casos. Por favor, intenta nuevamente.');
-      }
-    };
-
-    const fetchTodosLosCasos = async () => {
-      try {
-        const response = await axios.get(`http://192.168.50.101:3000/api/casos`);
-        console.log('Todos los casos:', response.data);
-        const casosFiltrados = response.data.filter(caso => getEstadoNombre(caso.ID_estado).toLowerCase() !== 'cerrado');
-        setCasos(casosFiltrados);
-        setError(null);
-      } catch (error) {
-        console.error('Error al obtener todos los casos', error);
-        setError('Hubo un problema al obtener todos los casos. Por favor, intenta nuevamente.');
-      }
-    };
-
-    if (usuarioId) {
-      if (userRole === 'Liquidador') {
-        fetchTodosLosCasos(); // Liquidador ve todos los casos
-      } else {
-        fetchCasosPorUsuario(); // Otros roles ven solo los casos asignados a su usuario
-      }
+  // Función para obtener los casos filtrados por usuario
+  const fetchCasosPorUsuario = async () => {
+    try {
+      const response = await axios.get(`http://192.168.55.1:3000/api/casos/${usuarioId}/usuario`);
+      console.log('Casos:', response.data);
+      // Filtrar casos para ocultar los que están "Cerrados"
+      const casosFiltrados = response.data.filter(caso => getEstadoNombre(caso.ID_estado).toLowerCase() !== 'cerrado');
+      setCasos(casosFiltrados);
+      setError(null);
+    } catch (error) {
+      console.error('Error al obtener los casos por usuario', error);
+      setError('Hubo un problema al obtener los casos. Por favor, intenta nuevamente.');
     }
-  }, [usuarioId, userRole]);
+  };
+
+  // Función para obtener todos los casos
+  const fetchTodosLosCasos = async () => {
+    try {
+      const response = await axios.get(`http://192.168.55.1:3000/api/casos`);
+      console.log('Todos los casos:', response.data);
+      const casosFiltrados = response.data.filter(caso => getEstadoNombre(caso.ID_estado).toLowerCase() !== 'cerrado');
+      setCasos(casosFiltrados);
+      setError(null);
+    } catch (error) {
+      console.error('Error al obtener todos los casos', error);
+      setError('Hubo un problema al obtener todos los casos. Por favor, intenta nuevamente.');
+    }
+  };
+
+  // Usar useFocusEffect para refrescar los datos cada vez que la pantalla esté en foco
+  useFocusEffect(
+    useCallback(() => {
+      if (usuarioId) {
+        if (userRole === 'Liquidador') {
+          fetchTodosLosCasos(); // Liquidador ve todos los casos
+        } else {
+          fetchCasosPorUsuario(); // Otros roles ven solo los casos asignados a su usuario
+        }
+      }
+    }, [usuarioId, userRole]) // Dependencias del callback
+  );
 
   const getEstadoColor = (estado) => {
     switch (estado) {

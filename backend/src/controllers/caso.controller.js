@@ -132,12 +132,12 @@ export const getCasoCompletoById = async (req, res) => {
       LEFT JOIN 
           sector s ON c.ID_caso = s.ID_caso
       LEFT JOIN 
-          subsector ss ON s.ID_sector = ss.ID_sector;
+          subsector ss ON s.ID_sector = ss.ID_sector
+      WHERE 
+          c.ID_caso = ?;
     `;
 
     const [result] = await pool.query(query, [ID_caso]);
-
-    console.log(result);
 
     if (result.length === 0) {
       return res.status(404).json({ message: 'Caso no encontrado' });
@@ -174,7 +174,7 @@ export const updateEstadoCaso = async (req, res) => {
 // Controlador para crear un nuevo caso, el controlador recibe el tipo de siniestro y la descripción del siniestro, luego se elige un inspector en funcion a cuantos casos tiene asignados
 export const createNuevoCaso = async (req, res) => {
   try {
-    const { tipo_siniestro, descripcion_siniestro, ID_usuario } = req.body;
+    const { tipo_siniestro, descripcion_siniestro, ID_usuario, ID_contratista } = req.body;
 
     // Seleccionar el inspector con menos casos asignados
     const [rows] = await pool.query(
@@ -195,9 +195,9 @@ export const createNuevoCaso = async (req, res) => {
     console.log('Inspector seleccionado:', inspector.ID_inspector);
 
     const [result] = await pool.query(
-      `INSERT INTO caso (tipo_siniestro, descripcion_siniestro, ID_Cliente, ID_inspector, ID_estado)
-       VALUES (?, ?, ?, ?, 1)`,
-      [tipo_siniestro, descripcion_siniestro, ID_usuario, inspector.ID_inspector]
+      `INSERT INTO caso (tipo_siniestro, descripcion_siniestro, ID_Cliente, ID_inspector, ID_contratista, ID_estado)
+       VALUES (?, ?, ?, ?, ?, 1)`,
+      [tipo_siniestro, descripcion_siniestro, ID_usuario, inspector.ID_inspector, ID_contratista]
     );
 
     const ID_caso = result.insertId; // ID del caso recién creado
