@@ -40,7 +40,7 @@ export default function AdminScreen() {
   // Función para crear un nuevo usuario
   const createUser = async () => {
     try {
-      const response = await axios.post('http://192.168.55.1:3000/api/users', newUser);
+      const response = await axios.post('http://192.168.50.101:3000/api/users', newUser);
       setUsers([...users, response.data]);
       setNewUser({
         nombre: '',
@@ -71,7 +71,7 @@ export default function AdminScreen() {
           text: 'Eliminar',
           onPress: async () => {
             try {
-              await axios.delete(`http://192.168.55.1:3000/api/users/${userId}`);
+              await axios.delete(`http://192.168.50.101:3000/api/users/${userId}`);
               setUsers(users.filter((user) => user.ID_usuario !== userId));
               Alert.alert('Éxito', 'Usuario eliminado correctamente.');
             } catch (err) {
@@ -100,7 +100,7 @@ export default function AdminScreen() {
   // Función para actualizar el precio del material
   const updateMaterialPrices = async (materialId, newPrice) => {
     try {
-      await axios.put(`http://192.168.55.1:3000/api/materiales/${materialId}`, { price: newPrice });
+      await axios.put(`http://192.168.50.101:3000/api/materiales/${materialId}`, { price: newPrice });
       setMaterialId('');
       setNewPrice('');
       Alert.alert('Éxito', 'Precio de material actualizado correctamente.');
@@ -114,7 +114,7 @@ export default function AdminScreen() {
   // Función para obtener los casos de un usuario
   const listCasesByUser = async (userId) => {
     try {
-      const response = await axios.get(`http://192.168.55.1:3000/api/casos/${userId}/usuario`);
+      const response = await axios.get(`http://192.168.50.101:3000/api/casos/${userId}/usuario`);
       setCasos(response.data);
     } catch (err) {
       setError('Error al obtener los casos');
@@ -125,7 +125,7 @@ export default function AdminScreen() {
   // Función para listar los materiales
   const fetchMaterials = async () => {
     try {
-      const response = await axios.get('http://192.168.55.1:3000/api/materiales');
+      const response = await axios.get('http://192.168.50.101:3000/api/materiales');
       setMateriales(response.data);
     } catch (err) {
       setError('Error al obtener los materiales');
@@ -136,7 +136,7 @@ export default function AdminScreen() {
   // Función para listar los roles
   const fetchRoles = async () => {
     try {
-      const response = await axios.get('http://192.168.55.1:3000/api/rol');
+      const response = await axios.get('http://192.168.50.101:3000/api/rol');
       setRoles(response.data);
     } catch (err) {
       setError('Error al obtener los roles');
@@ -147,7 +147,7 @@ export default function AdminScreen() {
   // Función para listar los usuarios
   const fetchUsers = async () => {
     try {
-      const response = await axios.get('http://192.168.55.1:3000/api/users');
+      const response = await axios.get('http://192.168.50.101:3000/api/users');
       setUsers(response.data);
     } catch (err) {
       setError('Error al obtener los usuarios');

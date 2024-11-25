@@ -2,6 +2,8 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useUser } from '../contexts/UserContext'; // Importa el contexto
 import { useFocusEffect } from '@react-navigation/native'; // Importa useFocusEffect
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
 
 const CasoDetalle = ({ route }) => {
   const { casoId } = route.params; // El ID del caso que se pasa a la vista
@@ -14,7 +16,7 @@ const CasoDetalle = ({ route }) => {
 
   const fetchCaso = async () => {
     try {
-      const response = await fetch(`http://192.168.55.1:3000/api/casos/${casoId}/completo`);
+      const response = await fetch(`http://192.168.50.101:3000/api/casos/${casoId}/completo`);
       const data = await response.json();
       console.log('Datos obtenidos del caso:', data); // Para ver qué datos llegan
       setCaso(data);
@@ -38,8 +40,43 @@ const CasoDetalle = ({ route }) => {
     setOpenSectors((prev) => ({ ...prev, [index]: !prev[index] }));
   };
 
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const downloadAndShareFile = async () => {
+    try {
+      setIsDownloading(true);
+
+      const backendUrl = `http://192.168.50.101:3000/api/archivos/${casoId}/download`;
+
+      const headResponse = await fetch(backendUrl, { method: 'HEAD' });
+      const contentDisposition = headResponse.headers.get('Content-Disposition') || '';
+      const matches = contentDisposition.match(/filename="(.+?)"/);
+      const fileName = matches ? matches[1] : `archivo-${casoId}`;
+
+      const fileUri = `${FileSystem.cacheDirectory}${fileName}`;
+
+      const response = await FileSystem.downloadAsync(backendUrl, fileUri);
+
+      if (response.status !== 200) {
+        throw new Error(`Descarga fallida. Estado: ${response.status}`);
+      }
+
+      if (!(await Sharing.isAvailableAsync())) {
+        Alert.alert('Compartir no está disponible en este dispositivo');
+        return;
+      }
+
+      await Sharing.shareAsync(response.uri);
+    } catch (error) {
+      console.error('Error al descargar o compartir el archivo:', error.message);
+      Alert.alert('Error', error.message || 'No se pudo descargar o compartir el archivo.');
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   if (loading) {
-    return <ActivityIndicator style={styles.loadingIndicator} size="large" color="#007bff" />;
+    return <ActivityIndicator style={styles.loadingIndicator} color="#007bff" />;
   }
 
   if (!caso || caso.length === 0) {
@@ -166,6 +203,17 @@ const CasoDetalle = ({ route }) => {
           </View>
         ))}
       </View>
+
+      {/* Botón para descargar y compartir archivo */}
+      <TouchableOpacity
+        style={{ backgroundColor: '#007bff', padding: 10, borderRadius: 5, marginTop: 20 }}
+        onPress={downloadAndShareFile}
+        disabled={isDownloading}
+      >
+        <Text style={{ color: '#fff', textAlign: 'center' }}>
+          {isDownloading ? 'Descargando...' : 'Compartir Cotización'}
+        </Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 };

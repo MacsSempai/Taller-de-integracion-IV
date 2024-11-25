@@ -12,7 +12,7 @@ export default function HomeScreen({ navigation }) {
   // Función para obtener los casos filtrados por usuario
   const fetchCasosPorUsuario = async () => {
     try {
-      const response = await axios.get(`http://192.168.55.1:3000/api/casos/${usuarioId}/usuario`);
+      const response = await axios.get(`http://192.168.50.101:3000/api/casos/${usuarioId}/usuario`);
       console.log('Casos:', response.data);
       // Filtrar casos para ocultar los que están "Cerrados"
       const casosFiltrados = response.data.filter(caso => getEstadoNombre(caso.ID_estado).toLowerCase() !== 'cerrado');
@@ -27,7 +27,7 @@ export default function HomeScreen({ navigation }) {
   // Función para obtener todos los casos
   const fetchTodosLosCasos = async () => {
     try {
-      const response = await axios.get(`http://192.168.55.1:3000/api/casos`);
+      const response = await axios.get(`http://192.168.50.101:3000/api/casos`);
       console.log('Todos los casos:', response.data);
       const casosFiltrados = response.data.filter(caso => getEstadoNombre(caso.ID_estado).toLowerCase() !== 'cerrado');
       setCasos(casosFiltrados);

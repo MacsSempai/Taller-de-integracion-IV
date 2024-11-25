@@ -15,7 +15,7 @@ import * as MediaLibrary from 'expo-media-library';
 import * as XLSX from 'xlsx';
 import { Buffer } from 'buffer'; 
 
-const BASE_URL = 'http://192.168.55.1:3000/api';
+const BASE_URL = 'http://192.168.50.101:3000/api';
 
 const InspectionForm = ({ route }) => {
   const { casoId } = route.params; // Recibe el casoId desde la navegación
@@ -53,6 +53,17 @@ const InspectionForm = ({ route }) => {
     }
   };
 
+  const requestMediaLibraryPermission = async () => {
+    const { status } = await MediaLibrary.requestPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert(
+        'Permiso denegado',
+        'Necesitamos permisos para acceder a la biblioteca multimedia para guardar el archivo.'
+      );
+      throw new Error('Permiso denegado');
+    }
+  };
+
   const fetchClienteData = async (idCliente) => {
     try {
       const response = await axios.get(`${BASE_URL}/users/${idCliente}`);
@@ -78,9 +89,12 @@ const InspectionForm = ({ route }) => {
 
   const createExcelFile = async () => {
     try {
+      // Request permissions before proceeding
+      await requestMediaLibraryPermission();
+  
       const currentDate = new Date();
       const formattedDate = currentDate.toLocaleDateString();
-
+  
       const wb = XLSX.utils.book_new();
       const wsData = [
         ["Reporte de Inspección", ""],
@@ -94,29 +108,36 @@ const InspectionForm = ({ route }) => {
         ["Dirección del Cliente", clienteData?.direccion || 'No especificado'],
         ["Comuna del Cliente", clienteData?.comuna || 'No especificado'],
       ];
-
+  
       const ws = XLSX.utils.aoa_to_sheet(wsData);
       XLSX.utils.book_append_sheet(wb, ws, 'Inspección');
-
+  
       const binary = XLSX.write(wb, { type: 'binary', bookType: 'xlsx' });
       const base64 = Buffer.from(binary, 'binary').toString('base64');
-
+  
       const fileName = `Inspeccion_${clienteData?.nombre || 'Cliente'}_${formData?.tipo_siniestro || 'Siniestro'}.xlsx`;
       const fileUri = `${FileSystem.documentDirectory}${fileName}`;
-
+  
+      // Save file to the file system
       await FileSystem.writeAsStringAsync(fileUri, base64, { encoding: FileSystem.EncodingType.Base64 });
-      await MediaLibrary.createAssetAsync(fileUri);
-
-      // Subir el archivo Excel al servidor
+  
+      // Save file to the media library
+      const asset = await MediaLibrary.createAssetAsync(fileUri);
+  
+      // Optional: Add the file to a specific album
+      await MediaLibrary.createAlbumAsync('Inspecciones', asset, false);
+  
+      // Proceed with file upload
       await uploadExcelFile(fileUri, fileName);
-
+  
+      Alert.alert('Éxito', 'Archivo Excel creado y enviado correctamente');
       return { fileUri, fileName };
     } catch (error) {
       console.error('Error al crear el archivo Excel:', error);
       Alert.alert('Error', 'No se pudo crear el archivo Excel. Revise los datos e intente nuevamente.');
     }
   };
-
+  
   const uploadExcelFile = async (fileUri, fileName) => {
     try {
       const formDataToSend = new FormData();

@@ -21,7 +21,7 @@ export default function ForgotPasswordScreen({ navigation }) {
     }
 
     try {
-      const response = await fetch('https://192.168.55.1:3000/api/recover-password', {
+      const response = await fetch('https://192.168.50.101:3000/api/recover-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

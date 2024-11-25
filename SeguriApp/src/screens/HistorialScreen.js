@@ -12,7 +12,7 @@ export default function HistorialScreen({ navigation }) {
   // Función para obtener los casos
   const fetchCasos = async () => {
     try {
-      const response = await axios.get(`http://192.168.55.1:3000/api/casos/${usuarioId}/usuario`);
+      const response = await axios.get(`http://192.168.50.101:3000/api/casos/${usuarioId}/usuario`);
       console.log('Casos:', response.data);
       // Filtrar casos para solo mostrar los que están "Cerrados"
       const casosFiltrados = response.data.filter(caso => getEstadoNombre(caso.ID_estado).toLowerCase() === 'cerrado');
@@ -64,10 +64,10 @@ export default function HistorialScreen({ navigation }) {
         navigation.navigate('Detalles', { casoId: item.ID_caso });
         break;
       case 'Contratista':
-        navigation.navigate('Detalles', { casoId: item.id });
+        navigation.navigate('Detalles', { casoId: item.ID_caso });
         break;
       case 'Inspector':
-        navigation.navigate('Detalles', { casoId: item.id });
+        navigation.navigate('Detalles', { casoId: item.ID_caso  });
       default:
         console.error('Rol no válido:', userRole);
     }

@@ -10,7 +10,7 @@ const CasoContratista = ({ route }) => {
   useEffect(() => {
     const fetchCaso = async () => {
       try {
-        const response = await fetch(`http://192.168.55.1:3000/api/casos/${casoId}/completo`);
+        const response = await fetch(`http://192.168.50.101:3000/api/casos/${casoId}/completo`);
         const data = await response.json();
         console.log('Datos obtenidos del caso:', data); // Para ver qué datos llegan
         setCaso(data);
@@ -30,7 +30,7 @@ const CasoContratista = ({ route }) => {
 
   const cerrarCaso = async () => {
     try {
-      const response = await fetch(`http://192.168.55.1:3000/api/casos/${casoId}`, {
+      const response = await fetch(`http://192.168.50.101:3000/api/casos/${casoId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -49,7 +49,7 @@ const CasoContratista = ({ route }) => {
   };
 
   if (loading) {
-    return <ActivityIndicator style={styles.loadingIndicator} size="large" color="#007bff" />;
+    return <ActivityIndicator style={styles.loadingIndicator} color="#007bff" />;
   }
 
   if (!caso || caso.length === 0) {

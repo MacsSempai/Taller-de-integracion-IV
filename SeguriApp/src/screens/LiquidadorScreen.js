@@ -10,7 +10,7 @@ const LiquidarCaso = ({ route, navigation }) => {
   useEffect(() => {
     const fetchCaso = async () => {
       try {
-        const response = await fetch(`http://192.168.55.1:3000/api/casos/${casoId}/completo`);
+        const response = await fetch(`http://192.168.50.101:3000/api/casos/${casoId}/completo`);
         const data = await response.json();
         setCaso(data);
       } catch (error) {
@@ -31,7 +31,7 @@ const LiquidarCaso = ({ route, navigation }) => {
     // Convertimos el estado a su correspondiente código
     const estadoCodigo = nuevoEstado === 'aceptado' ? 3 : 4; // 3 = aceptado, 4 = rechazado
     try {
-      const response = await fetch(`http://192.168.55.1:3000/api/casos/${casoId}`, {
+      const response = await fetch(`http://192.168.50.101:3000/api/casos/${casoId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -55,7 +55,7 @@ const LiquidarCaso = ({ route, navigation }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007bff" />
+        <ActivityIndicator color="#007bff" />
         <Text style={styles.loadingText}>Cargando caso...</Text>
       </View>
     );
