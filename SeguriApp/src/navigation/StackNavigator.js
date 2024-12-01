@@ -10,6 +10,7 @@ import HistorialScreen from '../screens/HistorialScreen';
 import CasoContratista from '../screens/ContratistaScreen';
 import AbrirCasoScreen from '../screens/AbrirCasoScreen';
 import AdminScreen from '../screens/AdminScreen';
+import ResetPasswordScreen from '../screens/ResetPasswordScreen';
 
 const Stack = createStackNavigator();
 
@@ -26,6 +27,7 @@ export default function StackNavigator() {
       <Stack.Screen name="Contratista" component={CasoContratista} />
       <Stack.Screen name="AbrirCaso" component={AbrirCasoScreen} />
       <Stack.Screen name="Admin" component={AdminScreen} />
+      <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
     </Stack.Navigator>
   );
 }

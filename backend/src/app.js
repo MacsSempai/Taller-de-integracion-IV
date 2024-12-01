@@ -14,6 +14,7 @@ import sectorRoutes from './routes/sector.routes.js';  // Nueva ruta para sector
 import subsectorRoutes from './routes/subsector.routes.js';  // Nueva ruta para subsectores
 import userRoutes from './routes/usuario.routes.js';
 import rolRoutes from './routes/rol.routes.js';
+import passwordRoutes from './routes/password.routes.js';
 
 dotenv.config();
 
@@ -34,6 +35,7 @@ app.use('/api/sectores', sectorRoutes); // Nueva ruta de sectores
 app.use('/api/subsectores', subsectorRoutes); // Nueva ruta de subsectores
 app.use('/api/users', userRoutes);
 app.use('/api/rol', rolRoutes);
+app.use('/api/password', passwordRoutes);
 
 // Ruta de prueba
 app.get('/prueba', (req, res) => {
