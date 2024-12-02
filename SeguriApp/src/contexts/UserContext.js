@@ -1,9 +1,11 @@
 import React, { createContext, useState, useContext } from 'react';
+import axios from 'axios';
 
 // Crear el contexto del usuario
 const UserContext = createContext();
 const ClientContext = createContext();
 const ContractorContext = createContext();
+const AdminContext = createContext();
 
 const defaultClient = {
   nombre: 'Juan Pérez',
@@ -21,13 +23,8 @@ const defaultContractors = [
 export const useUser = () => useContext(UserContext);
 
 export const UserProvider = ({ children }) => {
-<<<<<<< HEAD
-  const [userRole, setUserRole] = useState('Inspector'); // los roles son 'Admin','Inspector', 'Cliente', 'Liquidador' y 'Contratista'
-=======
-  // Agregamos el usuarioId además del rol
   const [userRole, setUserRole] = useState(''); // Roles: 'Admin', 'Inspector', 'Cliente', 'Liquidador', 'Contratista'
   const [usuarioId, setUsuarioId] = useState(''); // ID del usuario
->>>>>>> origin/MSierra
 
   return (
     <UserContext.Provider value={{ userRole, setUserRole, usuarioId, setUsuarioId }}>
@@ -61,3 +58,59 @@ export const ContractorProvider = ({ children }) => {
     </ContractorContext.Provider>
   );
 };
+
+// Admin Context (Nuevo)
+export const useAdmin = () => useContext(AdminContext);
+
+export const AdminProvider = ({ children }) => {
+  const [users, setUsers] = useState([]);
+  const [cases, setCases] = useState([]);
+  const [materials, setMaterials] = useState([]);
+
+  // Crear usuario
+  const createUser = async (userData) => {
+    try {
+      const response = await axios.post('/admin/create-user', userData);
+      setUsers([...users, response.data.user]);
+    } catch (err) {
+      console.error('Error creando usuario:', err);
+    }
+  };
+
+  // Eliminar usuario
+  const deleteUser = async (userId) => {
+    try {
+      await axios.delete(`/admin/delete-user/${userId}`);
+      setUsers(users.filter(user => user.ID_usuario !== userId));
+    } catch (err) {
+      console.error('Error eliminando usuario:', err);
+    }
+  };
+
+  // Listar casos por rol
+  const listCasesByRole = async (roleId) => {
+    try {
+      const response = await axios.get(`/admin/list-cases/${roleId}`);
+      setCases(response.data);
+    } catch (err) {
+      console.error('Error listando casos:', err);
+    }
+  };
+
+  // Actualizar precios de materiales
+  const updateMaterialPrices = async (materialId, newPrice) => {
+    try {
+      const response = await axios.put(`/admin/update-material/${materialId}`, { price: newPrice });
+      setMaterials(materials.map(material => material.ID_material === materialId ? { ...material, precio: newPrice } : material));
+    } catch (err) {
+      console.error('Error actualizando precio de material:', err);
+    }
+  };
+
+  return (
+    <AdminContext.Provider value={{ users, cases, materials, createUser, deleteUser, listCasesByRole, updateMaterialPrices }}>
+      {children}
+    </AdminContext.Provider>
+  );
+};
+

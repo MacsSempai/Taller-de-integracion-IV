@@ -3,6 +3,7 @@
     "name": "MyNewProject",
     "slug": "mynewproject",
     "version": "1.0.0",
+    "newArchEnabled": false,
     "orientation": "portrait",
     "platforms": [
       "ios",
@@ -32,6 +33,15 @@
     "extra": {
       "eas": {
         "projectId": "7268b8c1-f317-4ff2-99c1-de257cf7079a"
+      }
+    },
+    "scheme": "mynewproject", 
+    "linking": {
+      "prefixes": ["mynewproject://"], 
+      "config": {
+        "screens": {
+          "ResetPassword": "reset-password/:token" 
+        }
       }
     }
   }

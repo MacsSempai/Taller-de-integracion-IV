@@ -1,60 +1,55 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback } from 'react'; 
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import { useUser } from '../contexts/UserContext'; // Importa el contexto
 import axios from 'axios';
+import { useFocusEffect } from '@react-navigation/native'; // Importa useFocusEffect
 
 export default function HomeScreen({ navigation }) {
-  const { usuarioId } = useUser(); // Accede al usuarioId desde el contexto
-  const [userRole, setUserRole] = useState(null); // Estado local para el rol del usuario
+  const { usuarioId, userRole } = useUser();
   const [casos, setCasos] = useState([]);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchCasos = async () => {
-      try {
-        const response = await axios.get(`http://192.168.50.101:3000/casos/${usuarioId}`);
-        setCasos(response.data);
-        setError(null);
-      } catch (error) {
-        console.error('Error al obtener los casos', error);
-        setError('Hubo un problema al obtener los casos. Por favor, intenta nuevamente.');
-      }
-    };
-
-    if (usuarioId) {
-      fetchCasos(); // Llama a la función para obtener los casos
+  // Función para obtener los casos filtrados por usuario
+  const fetchCasosPorUsuario = async () => {
+    try {
+      const response = await axios.get(`http://190.114.253.250:3000/api/casos/${usuarioId}/usuario`);
+      console.log('Casos:', response.data);
+      // Filtrar casos para ocultar los que están "Cerrados"
+      const casosFiltrados = response.data.filter(caso => getEstadoNombre(caso.ID_estado).toLowerCase() !== 'cerrado');
+      setCasos(casosFiltrados);
+      setError(null);
+    } catch (error) {
+      console.error('Error al obtener los casos por usuario', error);
+      setError('Hubo un problema al obtener los casos. Por favor, intenta nuevamente.');
     }
+  };
 
-    const fetchUserRole = async () => {
+  // Función para obtener todos los casos
+  const fetchTodosLosCasos = async () => {
+    try {
+      const response = await axios.get(`http://190.114.253.250:3000/api/casos`);
+      console.log('Todos los casos:', response.data);
+      const casosFiltrados = response.data.filter(caso => getEstadoNombre(caso.ID_estado).toLowerCase() !== 'cerrado');
+      setCasos(casosFiltrados);
+      setError(null);
+    } catch (error) {
+      console.error('Error al obtener todos los casos', error);
+      setError('Hubo un problema al obtener todos los casos. Por favor, intenta nuevamente.');
+    }
+  };
+
+  // Usar useFocusEffect para refrescar los datos cada vez que la pantalla esté en foco
+  useFocusEffect(
+    useCallback(() => {
       if (usuarioId) {
-        try {
-          const response = await axios.get(`http://192.168.50.101:3000/roles/${usuarioId}`);
-          const rolData = response.data[0]; // Asegúrate de que la API devuelva el rol en el primer elemento
-          setUserRole(rolData ? rolData.nombre : null);
-        } catch (error) {
-          console.error('Error al obtener el rol del usuario:', error);
+        if (userRole === 'Liquidador') {
+          fetchTodosLosCasos(); // Liquidador ve todos los casos
+        } else {
+          fetchCasosPorUsuario(); // Otros roles ven solo los casos asignados a su usuario
         }
       }
-    };
-
-    fetchUserRole();
-  }, [usuarioId]);
-
-  if (error) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>{error}</Text>
-      </View>
-    );
-  }
-
-  if (casos.length === 0) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.infoText}>No se encontraron casos para mostrar.</Text>
-      </View>
-    );
-  }
+    }, [usuarioId, userRole]) // Dependencias del callback
+  );
 
   const getEstadoColor = (estado) => {
     switch (estado) {
@@ -71,17 +66,29 @@ export default function HomeScreen({ navigation }) {
     }
   };
 
-  // Función para manejar la navegación basada en el rol
+  const getEstadoNombre = (estadoId) => {
+    const estados = {
+      1: 'Abierto',
+      2: 'Cerrado',
+      3: 'Aceptado',
+      4: 'Rechazado',
+    };
+    return estados[estadoId] || 'Desconocido'; // Devuelve 'Desconocido' si el estado no está mapeado
+  };
+
   const handleNavigation = (item) => {
     switch (userRole) {
-      case 'cliente':
-        navigation.navigate('Detalles', { casoId: item.id, clienteId: item.cliente_id });
+      case 'Cliente':
+        navigation.navigate('Detalles', { casoId: item.ID_caso });
         break;
-      case 'inspector':
-        navigation.navigate('Inspeccion', { casoId: item.id });
+      case 'Inspector':
+        navigation.navigate('Inspeccion', { casoId: item.ID_caso });
         break;
-      case 'liquidador':
-        navigation.navigate('Liquidacion', { casoId: item.id });
+      case 'Liquidador':
+        navigation.navigate('Liquidacion', { casoId: item.ID_caso });
+        break;
+      case 'Contratista':
+        navigation.navigate('Contratista', { casoId: item.ID_caso });
         break;
       default:
         console.error('Rol no válido:', userRole);
@@ -90,25 +97,57 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <FlatList
-        data={casos}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => {
-          return (
-            <TouchableOpacity
-              style={[styles.caseButton]} 
-              onPress={() => handleNavigation(item)} 
-            >
-              <View style={styles.caseContent}>
-                <Text style={styles.caseDescription}>{item.descripcion}</Text>
-                <View style={[styles.statusBox, { backgroundColor: getEstadoColor(item.estado) }]}>
-                  <Text style={styles.statusText}>{item.estado}</Text>
-                </View>
-              </View>
-            </TouchableOpacity>
-          );
-        }}
-      />
+      {(userRole === 'Cliente' || userRole === 'Inspector' || userRole === 'Contratista') && (
+        <TouchableOpacity
+          style={styles.historialButton}
+          onPress={() => navigation.navigate('Historial')}
+        >
+          <Text style={styles.historialButtonText}>Ver Historial</Text>
+        </TouchableOpacity>
+      )}
+      {error ? (
+        <View style={styles.infoContainer}>
+          <Text style={styles.infoText}>{error}</Text>
+        </View>
+      ) : (
+        casos.length === 0 ? (
+          <View style={styles.infoContainer}>
+            <Text style={styles.infoText}>No se encontraron casos para mostrar.</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={casos}
+            keyExtractor={(item) => item.ID_caso ? item.ID_caso.toString() : Math.random().toString()} // Usa ID_caso como identificador
+            renderItem={({ item }) => {
+              const estadoNombre = getEstadoNombre(item.ID_estado).toLowerCase(); // Optimización
+              return (
+                <TouchableOpacity
+                  style={[styles.caseButton]} 
+                  onPress={() => handleNavigation(item)} 
+                >
+                  <View style={styles.caseContent}>
+                    <Text style={styles.caseDescription}>{item.descripcion_siniestro}</Text>
+                    <View style={[styles.statusBox, { backgroundColor: getEstadoColor(estadoNombre) }]}>
+                      <Text style={styles.statusText}>{getEstadoNombre(item.ID_estado)}</Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              );
+            }}
+            initialNumToRender={10} // Optimización para FlatList
+          />
+        )
+      )}
+      
+      {/* Botón para abrir un caso (Solo visible para Cliente) */}
+      {userRole === 'Cliente' && (
+        <TouchableOpacity
+          style={styles.newCaseButton}
+          onPress={() => navigation.navigate('AbrirCaso')} // Navega a la pantalla para abrir un nuevo caso
+        >
+          <Text style={styles.newCaseButtonText}>Abrir Nuevo Caso</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -134,10 +173,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#e0e0e0',
-  },
-  disabledButton: {
-    backgroundColor: '#f0f0f0',
-    borderColor: '#d0d0d0',
   },
   caseContent: {
     flexDirection: 'row',
@@ -170,14 +205,31 @@ const styles = StyleSheet.create({
     color: '#555',
     textAlign: 'center',
   },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
+  historialButton: {
+    backgroundColor: '#3498db',
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 15,
     alignItems: 'center',
   },
-  errorText: {
-    fontSize: 18,
-    color: '#e74c3c',
-    textAlign: 'center',
+  historialButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 16,
+  },
+  newCaseButton: {
+    backgroundColor: '#2ecc71',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    right: 20,
+  },
+  newCaseButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 16,
   },
 });
