@@ -3,7 +3,7 @@ import { pool } from '../config/db.js';
 // Controlador para obtener todos los contratistas
 export const getContratistas = async (req, res) => {
   try {
-    const [rows] = await pool.query('SELECT * FROM Contratista');
+    const [rows] = await pool.query('SELECT * FROM contratista');
     
     // Verificar si hay contratistas en la respuesta
     if (rows.length === 0) {

@@ -3,7 +3,7 @@ import { pool } from '../config/db.js';
 // Obtener todos los subsectores
 export const getSubSectores = async (req, res) => {
   try {
-    const [rows] = await pool.query('SELECT * FROM SubSector');
+    const [rows] = await pool.query('SELECT * FROM subsector');
     res.json(rows);
   } catch (error) {
     console.error('Error al obtener subsectores:', error);

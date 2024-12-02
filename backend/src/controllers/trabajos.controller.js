@@ -8,7 +8,7 @@ export const getTrabajosBySubSector = async (req, res) => {
 
   try {
     const [rows] = await pool.query(
-      'SELECT * FROM Trabajos WHERE ID_sub_sector = ?',
+      'SELECT * FROM trabajos WHERE ID_sub_sector = ?',
       [subSectorId]
     );
 
