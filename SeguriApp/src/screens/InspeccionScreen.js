@@ -15,7 +15,7 @@ import * as MediaLibrary from 'expo-media-library';
 import * as XLSX from 'xlsx';
 import { Buffer } from 'buffer'; 
 
-const BASE_URL = 'http://192.168.50.101:3000/api';
+const BASE_URL = 'http://190.114.253.250:3000/api';
 
 const InspectionForm = ({ route }) => {
   const { casoId } = route.params; // Recibe el casoId desde la navegación

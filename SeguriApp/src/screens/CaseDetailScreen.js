@@ -16,7 +16,7 @@ const CasoDetalle = ({ route }) => {
 
   const fetchCaso = async () => {
     try {
-      const response = await fetch(`http://192.168.50.101:3000/api/casos/${casoId}/completo`);
+      const response = await fetch(`http://190.114.253.250:3000/api/casos/completo/${casoId}`);
       const data = await response.json();
       console.log('Datos obtenidos del caso:', data); // Para ver qué datos llegan
       setCaso(data);
@@ -46,7 +46,7 @@ const CasoDetalle = ({ route }) => {
     try {
       setIsDownloading(true);
 
-      const backendUrl = `http://192.168.50.101:3000/api/archivos/${casoId}/download`;
+      const backendUrl = `http://190.114.253.250:3000/api/archivos/${casoId}/download`;
 
       const headResponse = await fetch(backendUrl, { method: 'HEAD' });
       const contentDisposition = headResponse.headers.get('Content-Disposition') || '';

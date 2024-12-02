@@ -7,7 +7,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
 
   const handleRecoverPassword = async () => {
     try {
-      const response = await fetch(`http://192.168.50.101:3000/api/password/recover-password`, {
+      const response = await fetch(`http://190.114.253.250:3000/api/password/recover-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
+import { pool } from '../config/db.js';
 dotenv.config();
 
 // Almacenamiento temporal en memoria
@@ -33,9 +34,9 @@ export const recoverPassword = async (req, res) => {
     }
 
     try {
-        // Verificar si el usuario existe en la base de datos (simulado)
-        const userExists = true; // Cambiar por una consulta a tu base de datos.
-        if (!userExists) {
+        // Verificar si el usuario existe en la base de datos
+        const [rows] = await pool.query('SELECT * FROM Usuario WHERE correo = ?', [email]);
+        if (rows.length === 0) {
             return res.status(404).json({ success: false, message: 'No se encontró un usuario con ese correo electrónico.' });
         }
 
@@ -85,7 +86,7 @@ export const recoverPassword = async (req, res) => {
                     </div>
                 </div>
             `,
-        };        
+        };
 
         // Enviar el correo y almacenar el código solo si se envía con éxito
         transporter.sendMail(mailOptions, (error, info) => {
@@ -95,7 +96,7 @@ export const recoverPassword = async (req, res) => {
             }
 
             console.log('Correo enviado:', info.response);
-            
+
             // Guarda el código en la memoria temporal con expiración de 15 minutos
             verificationCodes[email] = {
                 code: verificationCode,
@@ -157,9 +158,14 @@ export const resetPassword = async (req, res) => {
     }
 
     try {
-        // Simula el cambio de contraseña (esto debería actualizar tu base de datos)
+        // Encriptar la nueva contraseña
         const hashedPassword = await bcrypt.hash(password, 10);
-        console.log(`Nueva contraseña para ${email}: ${hashedPassword}`);
+
+        // Actualizar la contraseña en la base de datos
+        await pool.query('UPDATE Usuario SET contrasena = ? WHERE correo = ?', [
+            hashedPassword,
+            email,
+        ]);
 
         res.status(200).json({ success: true, message: 'Contraseña actualizada correctamente.' });
     } catch (error) {

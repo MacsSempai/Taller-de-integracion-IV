@@ -19,7 +19,7 @@ export default function AbrirCasoScreen({ navigation }) {
     setLoading(true);
     
     try {
-      const response = await axios.post('http://192.168.50.101:3000/api/casos/nuevo', {
+      const response = await axios.post('http://190.114.253.250:3000/api/casos/nuevo', {
         tipo_siniestro: tipo,
         descripcion_siniestro: descripcion,
         ID_usuario: usuarioId,

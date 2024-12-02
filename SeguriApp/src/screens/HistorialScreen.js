@@ -12,7 +12,7 @@ export default function HistorialScreen({ navigation }) {
   // Función para obtener los casos
   const fetchCasos = async () => {
     try {
-      const response = await axios.get(`http://192.168.50.101:3000/api/casos/${usuarioId}/usuario`);
+      const response = await axios.get(`http://190.114.253.250:3000/api/casos/${usuarioId}/usuario`);
       console.log('Casos:', response.data);
       // Filtrar casos para solo mostrar los que están "Cerrados"
       const casosFiltrados = response.data.filter(caso => getEstadoNombre(caso.ID_estado).toLowerCase() === 'cerrado');

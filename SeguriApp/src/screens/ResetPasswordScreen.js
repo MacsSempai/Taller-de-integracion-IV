@@ -23,7 +23,7 @@ const VerifyCodeScreen = ({ route }) => {
     setLoading(true);
 
     try {
-      const response = await fetch('http://192.168.50.101:3000/api/password/verify-code', {
+      const response = await fetch('http://190.114.253.250:3000/api/password/verify-code', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -65,7 +65,7 @@ const VerifyCodeScreen = ({ route }) => {
     setLoading(true);
 
     try {
-      const response = await fetch('http://192.168.50.101:3000/api/password/reset', {
+      const response = await fetch('http://190.114.253.250:3000/api/password/reset-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
