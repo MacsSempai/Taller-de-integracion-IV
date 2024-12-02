@@ -1,11 +1,25 @@
 import React from 'react';
-import { View, Text, Button, StyleSheet, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons'; // Asegúrate de tener instalada esta librería
+import { View, Text, Button, StyleSheet } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons'; // Asegúrate de tener instalada esta librería
 
 export default function AdminHomeScreen({ navigation }) {
+  // Configura el ícono en el encabezado
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <MaterialIcons
+          name="menu"
+          size={28}
+          color="#333"
+          style={{ marginRight: 15 }}
+          onPress={() => navigation.navigate('Perfil')}
+        />
+      ),
+    });
+  }, [navigation]);
+
   return (
     <View style={styles.container}>
-
       <Text style={styles.title}>Panel de Administración</Text>
       <View style={styles.buttonContainer}>
         <Button
@@ -45,12 +59,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#f5f5f5',
-  },
-  profileButton: {
-    position: 'absolute',
-    top: 20,
-    right: 20,
-    zIndex: 10, // Asegura que esté por encima de otros elementos
   },
   title: {
     fontSize: 26,
